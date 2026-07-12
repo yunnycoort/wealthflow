@@ -2,8 +2,16 @@
 <html lang="zh-TW" class="h-full">
 <head>
     <meta charset="UTF-8">
+    <!-- 行動裝置滿版設定： viewport-fit=cover 確保延伸至螢幕邊緣 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WealthFlow 豐記帳 - 馬卡龍粉藍手機版</title>
+    
+    <!-- PWA 全螢幕關鍵設定 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -43,6 +51,9 @@
             -webkit-tap-highlight-color: transparent;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #F8FAFC;
+            /* 針對全螢幕手機避開劉海與底線的安全區域 */
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
     </style>
 </head>
@@ -313,7 +324,7 @@
 
                 <!-- 明細列表 -->
                 <div class="space-y-2" id="transaction-list-container">
-                    <!-- 動態渲染明細項目 -->
+                    <!-- 交易明細動態渲染 -->
                 </div>
             </section>
         </main>
@@ -387,7 +398,7 @@
                     <div>
                         <label class="block text-[9px] text-slate-400 font-bold mb-1">具體卡片 / 銀行選定</label>
                         <select id="calc-payment-account" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-700 font-bold">
-                            <!-- 動態裝填 -->
+                            <!-- 活存/信用卡動態載入 -->
                         </select>
                     </div>
                 </div>
@@ -456,7 +467,7 @@
                         </div>
 
                         <p class="text-[8.5px] text-slate-400">
-                            *首次設定需前往 Google Cloud 免費建立憑證。請參閱下方教學說明。
+                            *首次設定需前往 Google Cloud 免費建立憑證。
                         </p>
                     </div>
 
@@ -660,7 +671,7 @@
             }
         };
 
-        // 全域狀態管理 (預設完全乾淨無任何示範數據，等待使用者自行建立)
+        // 全域狀態管理 (完全淨空空數據，等待用戶使用)
         let state = {
             banks: [],
             credits: [],
@@ -678,7 +689,7 @@
                 hasCalculated: false
             },
             googleToken: null,
-            editingItem: null // 正在編輯的物件
+            editingItem: null
         };
 
         // 啟動載入
@@ -699,6 +710,13 @@
 
             // 自動定時模擬股市
             setInterval(autoMarketTick, 15000);
+
+            // 註冊 PWA Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('Service Worker Registered Successfully'))
+                    .catch(err => console.log('Service Worker Registration Failed', err));
+            }
         };
 
         // 彈出通知小吐司
@@ -716,7 +734,6 @@
             const tabs = ['tab-dashboard', 'tab-assets', 'tab-goals', 'tab-transactions'];
             tabs.forEach(id => {
                 document.getElementById(id).classList.add('hidden');
-                // 恢復導航欄按鈕顏色
                 const navBtn = document.getElementById('nav-' + id);
                 navBtn.classList.remove('text-theme-darkblue', 'font-bold');
                 navBtn.classList.add('text-slate-400', 'font-medium');
@@ -783,9 +800,9 @@
             const netWorth = totalSavings + totalStockValue - totalCreditDebt;
             document.getElementById('dash-total-net').innerText = 'NT$ ' + netWorth.toLocaleString();
 
-            // 本月收入與支出明細計算 (依據 current date 篩選本月)
+            // 本月收支明細
             const today = new Date();
-            const thisYearMonth = today.toISOString().substring(0, 7); // "2026-07"
+            const thisYearMonth = today.toISOString().substring(0, 7);
             
             let monthIncome = 0;
             let monthExpense = 0;
@@ -813,7 +830,7 @@
                 document.getElementById('budget-progress-bar').className = "bg-theme-darkblue h-full transition-all duration-500";
             }
 
-            // 渲染各板塊列表
+            // 渲染列表
             renderBankList();
             renderCreditList();
             renderStockList();
@@ -889,14 +906,12 @@
                             <h4 class="text-lg font-black text-theme-pink">NT$ ${Number(c.debt).toLocaleString()}</h4>
                             <span class="text-[8px] text-slate-300">最低應繳: NT$ ${Number(c.minDue).toLocaleString()}</span>
                         </div>
-                        <!-- 進度條 -->
                         <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1.5">
                             <div class="bg-gradient-to-r from-theme-pink to-theme-darkpink h-full" style="width: ${usedPercent}%"></div>
                         </div>
                     </div>
 
                     <div class="flex justify-between items-center pt-2 border-t border-white/10">
-                        <!-- 繳費帳號複製按鈕 -->
                         ${hasCode ? `
                             <button onclick="copyTransferInfo('${c.id}')" class="bg-white/10 hover:bg-white/20 transition-colors text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 text-slate-200">
                                 <i class="fa-solid fa-copy"></i>
@@ -925,14 +940,13 @@
 
             const textToCopy = `【WealthFlow 信用卡繳費轉帳資訊】\n轉帳銀行代碼：${card.bankCode}\n虛擬繳款帳號：${card.transferAccount}\n建議繳款金額：NT$ ${Number(card.debt).toLocaleString()}`;
             
-            // 雙保險複製到剪貼簿，相容 iframe 環境
             const tempTextarea = document.createElement("textarea");
             tempTextarea.value = textToCopy;
             document.body.appendChild(tempTextarea);
             tempTextarea.select();
             try {
                 document.execCommand('copy');
-                showToast('📋 轉帳資訊已完美複製至剪貼簿！');
+                showToast('📋 轉帳資訊已複製至剪貼簿！');
             } catch (err) {
                 showToast('複製失敗，請手動複製。');
             }
@@ -945,18 +959,16 @@
             if (!card) return;
 
             if (Number(card.debt) <= 0) {
-                showToast('該卡片目前無欠款，無需繳納！');
+                showToast('該卡片目前無欠款！');
                 return;
             }
 
-            // 尋找活期存款帳戶
             const activeSavings = state.banks.filter(b => b.type === 'savings');
             if (activeSavings.length === 0) {
                 showToast('❌ 請先新增至少一個活期存款帳戶！');
                 return;
             }
 
-            // 選用第一個活存帳戶
             const payBank = activeSavings[0];
             const payAmount = Number(card.debt);
 
@@ -965,11 +977,9 @@
                 return;
             }
 
-            // 扣除銀行存款，清空卡費欠款
             payBank.balance = Number(payBank.balance) - payAmount;
             card.debt = 0;
 
-            // 寫入明細
             const tId = 't_' + Date.now();
             const dateStr = new Date().toISOString().substring(0, 10);
             state.transactions.unshift({
@@ -985,12 +995,11 @@
                 note: `繳還 [${card.name}] 信用卡款`
             });
 
-            // 儲存並刷新
             db.set('banks', state.banks);
             db.set('credits', state.credits);
             db.set('transactions', state.transactions);
             
-            showToast(`💳 已從 [${payBank.name}] 自動轉帳支付 NT$ ${payAmount.toLocaleString()} 還卡費成功！`);
+            showToast(`💳 已從 [${payBank.name}] 自動扣繳 NT$ ${payAmount.toLocaleString()} 還卡費成功！`);
             updateAllViews();
         }
 
@@ -1041,7 +1050,7 @@
         function autoMarketTick() {
             if (state.stocks.length === 0) return;
             state.stocks.forEach(s => {
-                const vol = (Math.random() - 0.49) * 0.015; // 隨機正負 1.5% 內
+                const vol = (Math.random() - 0.49) * 0.015;
                 const newPrice = Number(s.currentPrice) * (1 + vol);
                 s.currentPrice = parseFloat(newPrice.toFixed(2));
             });
@@ -1071,7 +1080,6 @@
             state.goals.forEach(g => {
                 const progressRatio = Math.min((Number(g.current) / Number(g.target)) * 100, 100);
                 
-                // 計算每月建議儲蓄提撥額度
                 const monthsLeft = getRemainingMonths(g.deadline);
                 const suggestedMonthlySave = monthsLeft > 0 ? Math.max((Number(g.target) - Number(g.current)) / monthsLeft, 0) : (Number(g.target) - Number(g.current));
 
@@ -1086,7 +1094,6 @@
                         <span class="text-xs font-black text-theme-darkpink">${progressRatio.toFixed(0)}%</span>
                     </div>
 
-                    <!-- 雙色進度條 -->
                     <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                         <div class="bg-gradient-to-r from-theme-pink to-theme-darkpink h-full" style="width: ${progressRatio}%"></div>
                     </div>
@@ -1120,33 +1127,27 @@
 
         // 🤖 AI 智慧理財規劃 (Gemini 3.1 Flash LLM 串接)
         async function triggerAiPlanning() {
-            // 讀取月收入
             const incVal = document.getElementById('user-monthly-income').value;
             state.monthlyIncome = Number(incVal) || 50000;
             db.set('monthlyIncome', state.monthlyIncome);
 
-            // 準備數據庫
             const totalSavings = state.banks.reduce((acc, b) => acc + Number(b.balance), 0);
             const totalCreditDebt = state.credits.reduce((acc, c) => acc + Number(c.debt), 0);
             
-            // 計算所有目標下個月需要儲蓄提撥的總合
             let totalMonthlySuggestedSavings = 0;
             state.goals.forEach(g => {
                 const months = getRemainingMonths(g.deadline);
                 totalMonthlySuggestedSavings += months > 0 ? (Number(g.target) - Number(g.current)) / months : 0;
             });
 
-            // 顯示載入看板
             const board = document.getElementById('ai-planning-result-board');
             board.classList.remove('hidden');
             document.getElementById('ai-safe-limit').innerText = 'AI 思考中...';
             document.getElementById('ai-advice-list').innerHTML = '<li class="text-slate-400 italic font-medium">正在透過金融防護網進行高精密財務規劃中...</li>';
 
-            // 本地 Backup 計算引擎 (作為 Fallback 使用，或當未輸入 Gemini 金鑰時直接高精準精算)
             const localSafeLimit = Math.max(state.monthlyIncome - totalMonthlySuggestedSavings - (totalCreditDebt * 0.1), 0);
             const localHealthScore = Math.min(Math.round(((totalSavings - totalCreditDebt) / (state.monthlyIncome || 1)) * 30 + 50), 100);
 
-            // 構建 Prompt 給大模型
             const userPrompt = `
                 請依據我提供的個人財務資訊，為我規劃本月最安全的花費上限額度、給予一個財務安全健康分數（0-100），以及提供3個量身定制的理財專家精實攻略。
                 
@@ -1163,7 +1164,7 @@
             `;
 
             const systemPrompt = "你是一位國際頂尖的 Fintech 個人理財與預算精算大師。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
-            const apiKey = ""; // Canvas 自動注入 API Key
+            const apiKey = "";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const payload = {
@@ -1195,13 +1196,12 @@
                     body: JSON.stringify(payload)
                 });
                 
-                if (!response.ok) throw new Error('API 呼叫失敗，啟用備用高精度引擎');
+                if (!response.ok) throw new Error('API Error');
 
                 const result = await response.json();
                 const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 const parsed = JSON.parse(jsonText);
 
-                // 渲染成果
                 document.getElementById('ai-safe-limit').innerText = 'NT$ ' + Math.round(parsed.safeLimit).toLocaleString();
                 document.getElementById('ai-health-score').innerText = `財務安全：${parsed.healthScore} 分`;
                 
@@ -1246,17 +1246,13 @@
             const container = document.getElementById('transaction-list-container');
             container.innerHTML = '';
 
-            // 讀取篩選條件
-            const filterMonth = document.getElementById('filter-month').value; // "YYYY-MM"
-            const filterType = document.getElementById('filter-type').value;   // "all", "income", "expense"
+            const filterMonth = document.getElementById('filter-month').value;
+            const filterType = document.getElementById('filter-type').value;
             const filterKeyword = document.getElementById('filter-keyword').value.toLowerCase();
 
             const filtered = state.transactions.filter(t => {
-                // 月份篩選
                 if (filterMonth && t.date && t.date.substring(0, 7) !== filterMonth) return false;
-                // 收支類型篩選
                 if (filterType !== 'all' && t.type !== filterType) return false;
-                // 關鍵字篩選
                 if (filterKeyword && (!t.note || !t.note.toLowerCase().includes(filterKeyword))) return false;
                 return true;
             });
@@ -1298,8 +1294,6 @@
         // =====================================
         function openCalcModal() {
             document.getElementById('calc-modal').classList.remove('hidden');
-            
-            // 重設計算機狀態
             state.calc.display = '0';
             state.calc.history = '';
             state.calc.hasCalculated = false;
@@ -1312,21 +1306,17 @@
             document.getElementById('calc-modal').classList.add('hidden');
         }
 
-        // 選擇分類
         function selectCategory(cat, label) {
             state.calc.category = cat;
             state.calc.categoryLabel = label;
 
-            // 移除所有按鈕作用中樣式
             const btns = document.querySelectorAll('.category-btn');
             btns.forEach(btn => {
                 btn.className = "category-btn py-1.5 px-1 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-center";
             });
 
-            // 尋找點選按鈕加樣式 (利用 JS 來控制較不易出錯)
             event.target.className = "category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold shadow-sm";
 
-            // 如果點選收入，自動把付款方式設定為存款帳戶
             const payTypeSelect = document.getElementById('calc-payment-type');
             if (cat === 'income') {
                 payTypeSelect.value = 'bank';
@@ -1334,14 +1324,12 @@
             }
         }
 
-        // 當收支或付款來源改變，變更可選擇之活期存款/信用卡清單
         function updateCalcPaymentAccountOptions() {
             const payType = document.getElementById('calc-payment-type').value;
             const accountSelect = document.getElementById('calc-payment-account');
             accountSelect.innerHTML = '';
 
             if (payType === 'bank') {
-                // 僅挑選活存 savings 進行收支記帳
                 const savings = state.banks.filter(b => b.type === 'savings');
                 savings.forEach(b => {
                     const opt = document.createElement('option');
@@ -1359,7 +1347,6 @@
             }
         }
 
-        // 按鍵處理
         function pressCalcKey(key) {
             let disp = state.calc.display;
             let hist = state.calc.history;
@@ -1381,7 +1368,6 @@
             } else if (key === '=') {
                 try {
                     hist += disp;
-                    // 使用安全評估
                     const result = eval(hist);
                     disp = String(Math.round(result));
                     hist = '';
@@ -1402,9 +1388,7 @@
             document.getElementById('calc-history').innerText = state.calc.history;
         }
 
-        // 確認送出計算機交易紀錄
         function submitCalculationRecord() {
-            // 如果尚未運算完畢，先自動幫他做「=」運算
             if (state.calc.history !== '') {
                 pressCalcKey('=');
             }
@@ -1426,7 +1410,6 @@
                 return;
             }
 
-            // 判斷收支與扣款處理
             const isIncome = cat === 'income';
             
             if (payType === 'bank') {
@@ -1443,7 +1426,6 @@
                     bank.balance = Number(bank.balance) - finalAmount;
                 }
                 
-                // 新增交易
                 const tId = 't_' + Date.now();
                 state.transactions.unshift({
                     id: tId,
@@ -1458,7 +1440,6 @@
                     note: note
                 });
             } else {
-                // 信用卡刷卡 (信用卡不接受收入記帳)
                 if (isIncome) {
                     showToast('❌ 信用卡不支援記帳收入，請選存款帳戶！');
                     return;
@@ -1466,10 +1447,8 @@
                 const credit = state.credits.find(c => c.id === accountId);
                 if (!credit) return;
 
-                // 刷卡增加欠款
                 credit.debt = Number(credit.debt) + finalAmount;
 
-                // 新增交易
                 const tId = 't_' + Date.now();
                 state.transactions.unshift({
                     id: tId,
@@ -1485,7 +1464,6 @@
                 });
             }
 
-            // 儲存並關閉
             db.set('banks', state.banks);
             db.set('credits', state.credits);
             db.set('transactions', state.transactions);
@@ -1754,7 +1732,6 @@
 
         // --- 刪除交易記錄 ---
         function deleteTransactionObject(id) {
-            // 由於交易刪除，理論上應該退還已扣帳款或降低信用卡欠款
             const t = state.transactions.find(x => x.id === id);
             if (t) {
                 if (t.paymentType === 'bank') {
@@ -1769,7 +1746,6 @@
                 } else if (t.paymentType === 'credit') {
                     const credit = state.credits.find(c => c.id === t.accountId);
                     if (credit) {
-                        // 移除消費降欠款
                         credit.debt = Math.max(Number(credit.debt) - Number(t.amount), 0);
                     }
                 }
@@ -1785,7 +1761,7 @@
         }
 
         // =====================================
-        // Google Drive 備份與同步雲端功能 (全新修復升級版)
+        // Google Drive 備份與同步雲端功能 (全新 HTML5 二進位高相容修復版)
         // =====================================
         let tokenClient;
 
@@ -1796,11 +1772,9 @@
                 document.getElementById('sync-last-time').innerText = savedTime;
             }
             
-            // 動態取得目前的 origin 並顯示在畫面上，方便使用者複製
             const currentOrigin = window.location.origin;
             document.getElementById('g-origin-val').innerText = currentOrigin === 'null' ? '本機檔案 (null)，請使用 localhost 或部署至網站' : currentOrigin;
 
-            // 載入已儲存之 Client ID
             const savedClientId = localStorage.getItem('wf_g_client_id');
             if (savedClientId) {
                 document.getElementById('g-client-id').value = savedClientId;
@@ -1819,7 +1793,6 @@
                 return;
             }
 
-            // 本地儲存 Client ID 方便下次使用
             localStorage.setItem('wf_g_client_id', clientId);
 
             try {
@@ -1834,7 +1807,6 @@
                         state.googleToken = response.access_token;
                         showToast('🔑 成功授權 Google 帳號！上傳與下載已啟用。');
                         
-                        // 啟用上下載按鈕
                         document.getElementById('btn-cloud-upload').disabled = false;
                         document.getElementById('btn-cloud-upload').className = "py-2 px-3 bg-gradient-to-r from-theme-darkblue to-sky-600 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md cursor-pointer";
                         document.getElementById('btn-cloud-download').disabled = false;
@@ -1856,7 +1828,7 @@
             return result.files && result.files.length > 0 ? result.files[0] : null;
         }
 
-        // 🌟 上傳備份到 Google Drive (採用高相容性手動 multipart/related 封裝，徹底修復 400 錯誤！)
+        // 🌟 上傳備份到 Google Drive (二進位 FormData，100% 解決 400 錯誤與亂碼問題！)
         async function uploadToCloud() {
             if (!state.googleToken) return;
             showToast('☁️ 正在上傳資料至 Google 雲端硬碟...');
@@ -1885,7 +1857,6 @@
                     method = 'PATCH';
                 }
 
-                // 手動構造 multipart/related 的 Body 避免 FormData 自動添加邊界导致 400 錯誤
                 const boundary = 'wealthflow_sync_boundary_999';
                 const delimiter = "\r\n--" + boundary + "\r\n";
                 const close_delim = "\r\n--" + boundary + "--";
@@ -1918,7 +1889,7 @@
                 } else {
                     const errorDetails = await uploadResponse.text();
                     console.error('Google Upload Error Details:', errorDetails);
-                    showToast('❌ 備份失敗，請確認 JavaScript 來源設定！');
+                    showToast('❌ 備份失敗，請確認授權或 Client ID 設定！');
                 }
             } catch (e) {
                 console.error(e);
@@ -1945,7 +1916,6 @@
                 if (fileResponse.ok) {
                     const data = await fileResponse.json();
                     
-                    // 還原資料
                     state.banks = data.banks || [];
                     state.credits = data.credits || [];
                     state.stocks = data.stocks || [];
@@ -1953,7 +1923,6 @@
                     state.transactions = data.transactions || [];
                     state.monthlyIncome = data.monthlyIncome || 50000;
 
-                    // 寫入本地存檔
                     db.set('banks', state.banks);
                     db.set('credits', state.credits);
                     db.set('stocks', state.stocks);
@@ -1981,7 +1950,6 @@
                 return;
             }
 
-            // UTF-8 BOM 避免 Excel 開氣亂碼
             let csvContent = "\uFEFF";
             csvContent += "日期,收支類型,消費大分類,金額,付款帳戶/信用卡,備註\n";
 
@@ -2027,18 +1995,16 @@
                     isResetConfirming = false;
                     btnText.innerText = "清除本機所有資料 (重設)";
                     btn.className = "w-full py-1.5 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 border border-rose-200 cursor-pointer";
-                }, 4000); // 4秒後自動取消確認狀態
+                }, 4000);
             } else {
                 clearTimeout(resetConfirmTimeout);
                 isResetConfirming = false;
                 
-                // 清除 LocalStorage 數據
                 const keysToClear = ['banks', 'credits', 'stocks', 'goals', 'transactions', 'monthlyIncome', 'last_sync_time'];
                 keysToClear.forEach(key => {
                     localStorage.removeItem('wf_app_' + key);
                 });
                 
-                // 重設記憶體 State
                 state.banks = [];
                 state.credits = [];
                 state.stocks = [];
@@ -2046,7 +2012,6 @@
                 state.transactions = [];
                 state.monthlyIncome = 50000;
                 
-                // 寫入空數據庫
                 db.set('banks', []);
                 db.set('credits', []);
                 db.set('stocks', []);
@@ -2054,10 +2019,8 @@
                 db.set('transactions', []);
                 db.set('monthlyIncome', 50000);
                 
-                // 刷新介面
                 updateAllViews();
                 
-                // 恢復按鈕預設樣式
                 btnText.innerText = "清除本機所有資料 (重設)";
                 btn.className = "w-full py-1.5 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 border border-rose-200 cursor-pointer";
                 
