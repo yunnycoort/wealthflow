@@ -482,6 +482,15 @@
                     <p class="text-[9px] text-slate-400 text-center">
                         上次同步時間：<span id="sync-last-time" class="font-mono font-bold">無紀錄</span>
                     </p>
+
+                    <!-- 危險區域：清除本機資料 -->
+                    <div class="border-t border-slate-100 pt-3 mt-3">
+                        <span class="block text-[9px] text-rose-400 font-bold mb-1 uppercase tracking-wider">危險區域 (Danger Zone)</span>
+                        <button id="btn-reset-data" onclick="triggerFactoryReset()" class="w-full py-1.5 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 border border-rose-200 cursor-pointer">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span id="reset-btn-text">清除本機所有資料 (重設)</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1961,7 +1970,7 @@
                 return;
             }
 
-            // UTF-8 BOM 避免 Excel 開啟亂碼
+            // UTF-8 BOM 避免 Excel 開氣亂碼
             let csvContent = "\uFEFF";
             csvContent += "日期,收支類型,消費大分類,金額,付款帳戶/信用卡,備註\n";
 
@@ -1986,6 +1995,64 @@
             link.click();
             document.body.removeChild(link);
             showToast('📊 一鍵匯出 CSV 成功 (相容 Excel)！');
+        }
+
+        // =====================================
+        // 恢復原廠設定與清除資料邏輯 (防止 Alert/Confirm)
+        // =====================================
+        let resetConfirmTimeout = null;
+        let isResetConfirming = false;
+
+        function triggerFactoryReset() {
+            const btnText = document.getElementById('reset-btn-text');
+            const btn = document.getElementById('btn-reset-data');
+
+            if (!isResetConfirming) {
+                isResetConfirming = true;
+                btnText.innerText = "⚠️ 確定要清除？再次點選確認！";
+                btn.className = "w-full py-1.5 px-3 bg-rose-600 text-white hover:bg-rose-700 transition-colors text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer";
+                
+                resetConfirmTimeout = setTimeout(() => {
+                    isResetConfirming = false;
+                    btnText.innerText = "清除本機所有資料 (重設)";
+                    btn.className = "w-full py-1.5 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 border border-rose-200 cursor-pointer";
+                }, 4000); // 4秒後自動取消確認狀態
+            } else {
+                clearTimeout(resetConfirmTimeout);
+                isResetConfirming = false;
+                
+                // 清除 LocalStorage 數據
+                const keysToClear = ['banks', 'credits', 'stocks', 'goals', 'transactions', 'monthlyIncome', 'last_sync_time'];
+                keysToClear.forEach(key => {
+                    localStorage.removeItem('wf_app_' + key);
+                });
+                
+                // 重設記憶體 State
+                state.banks = [];
+                state.credits = [];
+                state.stocks = [];
+                state.goals = [];
+                state.transactions = [];
+                state.monthlyIncome = 50000;
+                
+                // 寫入空數據庫
+                db.set('banks', []);
+                db.set('credits', []);
+                db.set('stocks', []);
+                db.set('goals', []);
+                db.set('transactions', []);
+                db.set('monthlyIncome', 50000);
+                
+                // 刷新介面
+                updateAllViews();
+                
+                // 恢復按鈕預設樣式
+                btnText.innerText = "清除本機所有資料 (重設)";
+                btn.className = "w-full py-1.5 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 border border-rose-200 cursor-pointer";
+                
+                showToast("🗑️ 本機所有記帳與資產資料已成功歸零清空！");
+                closeSyncModal();
+            }
         }
     </script>
 </body>
