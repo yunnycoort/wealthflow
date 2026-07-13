@@ -2,17 +2,16 @@
 <html lang="zh-TW" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <!-- 行動裝置滿版設定： viewport-fit=cover 確保延伸至螢幕邊緣 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WealthFlow 豐記帳 - 馬卡龍粉藍手機版</title>
     
-    <!-- PWA 全螢幕關鍵設定 -->
+    <!-- PWA 行動全螢幕規格配置 -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS 輕量馬卡龍粉藍自訂設定 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -38,10 +37,10 @@
     </script>
     <!-- FontAwesome 圖標庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google GIS (Google 認證服務) -->
+    <!-- Google GIS 認證服務 -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* 隱藏手機原生滾動條，讓 App 感覺更像原生 */
+        /* 隱藏手機原生滾動條 */
         ::-webkit-scrollbar {
             display: none;
         }
@@ -49,13 +48,13 @@
             -webkit-tap-highlight-color: transparent;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #F8FAFC;
-            /* 針對全螢幕手機避開劉海與底線的安全區域 */
             padding-top: env(safe-area-inset-top, 0px);
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
     </style>
 </head>
 <body class="h-full flex justify-center items-start overflow-hidden">
+
     <!-- App 啟動畫面 (Splash Screen) -->
     <div id="splash-screen" class="fixed inset-0 bg-gradient-to-tr from-sky-100 via-white to-pink-100 z-[9999] flex flex-col items-center justify-center p-6 transition-all duration-500">
         <div class="text-center space-y-6 max-w-sm">
@@ -64,7 +63,7 @@
                     <span class="text-5xl">👛</span>
                 </div>
                 <div class="absolute -right-2 -bottom-2 bg-pink-100 text-pink-600 font-black text-xs px-2.5 py-1 rounded-full shadow border border-white">
-                    v1.6 Real
+                    v1.8 AI
                 </div>
             </div>
             
@@ -106,10 +105,10 @@
                 <button onclick="toggleAppFullscreen()" class="w-8 h-8 bg-white/70 text-slate-600 hover:bg-white transition-all rounded-full flex items-center justify-center text-xs shadow-md">
                     <i class="fa-solid fa-expand"></i>
                 </button>
-                <!-- 同步按鈕 -->
+                <!-- 同步與設定按鈕 -->
                 <button onclick="openSyncModal()" class="flex items-center gap-1 bg-white text-theme-darkblue hover:bg-theme-blue transition-colors px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
-                    <i class="fa-solid fa-cloud"></i>
-                    <span>同步</span>
+                    <i class="fa-solid fa-cog animate-spin-slow"></i>
+                    <span>同步設定</span>
                 </button>
             </div>
         </header>
@@ -437,7 +436,7 @@
                 <div class="space-y-1.5">
                     <span class="text-[9px] text-slate-400 font-bold block">選擇消費分類</span>
                     <div class="grid grid-cols-4 gap-1.5 text-xs font-bold" id="calc-category-group">
-                        <button onclick="selectCategory('food', '🍔 食物')" class="category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center">🍔 食物</button>
+                        <button onclick="selectCategory('food', '🍔 食物')" class="category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold">🍔 食物</button>
                         <button onclick="selectCategory('need', '🧼 必需品')" class="category-btn py-1.5 px-1 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-center">🧼 必需品</button>
                         <button onclick="selectCategory('makeup', '💄 美妝保養')" class="category-btn py-1.5 px-1 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-center">💄 美妝</button>
                         <button onclick="selectCategory('car', '🚗 車用')" class="category-btn py-1.5 px-1 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-center">🚗 車用</button>
@@ -501,17 +500,30 @@
             </div>
         </div>
 
-        <!-- Google Drive 同步設定對話視窗 -->
+        <!-- Google Drive 同步與 Gemini AI 設定對話視窗 -->
         <div id="sync-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white w-full max-w-sm rounded-[2rem] p-5 shadow-2xl space-y-4">
+            <div class="bg-white w-full max-w-sm rounded-[2rem] p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto">
                 <div class="flex justify-between items-center border-b pb-2">
-                    <span class="text-sm font-black text-slate-800">☁️ Google 帳號備份同步</span>
+                    <span class="text-sm font-black text-slate-800">⚙️ 系統同步與 AI 設定</span>
                     <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
 
                 <div class="space-y-3.5 text-xs text-slate-600">
+                    <!-- Gemini API Key 整合 -->
+                    <div class="p-3.5 bg-sky-50/50 border border-sky-100 rounded-2xl space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] text-slate-500 font-black">🤖 Gemini AI 專屬金鑰 (行情與規劃用)</label>
+                            <a href="https://aistudio.google.com/" target="_blank" class="text-[9px] text-theme-darkblue hover:underline font-bold">10秒免費申請 🔗</a>
+                        </div>
+                        <input type="password" id="gemini-api-key" placeholder="貼上您的 Gemini API Key..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] text-slate-600 focus:outline-none focus:border-theme-darkblue">
+                        <p class="text-[8px] text-slate-400">
+                            *設定此金鑰後，您的真實股市報價、匯率換算及 AI 目標規劃功能方可流暢連線。
+                        </p>
+                    </div>
+
+                    <!-- Google Backup 整合 -->
                     <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
-                        <label class="block text-[10px] text-slate-400 font-bold">1. 輸入您的 Google API Client ID</label>
+                        <label class="block text-[10px] text-slate-400 font-bold">☁️ Google API Client ID (雲端備份用)</label>
                         <input type="text" id="g-client-id" placeholder="貼上在 Google Console 取得的 Client ID..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] text-slate-600 focus:outline-none focus:border-theme-darkblue">
                         
                         <div class="p-2 bg-pink-50 rounded-lg border border-pink-100 text-[8.5px] text-slate-500 space-y-1">
@@ -521,10 +533,6 @@
                                 <span id="g-origin-val" class="font-mono bg-white border px-1.5 py-0.5 rounded text-slate-600 select-all break-all">取得中...</span>
                             </div>
                         </div>
-
-                        <p class="text-[8.5px] text-slate-400">
-                            *首次設定需前往 Google Cloud 免費建立憑證。
-                        </p>
                     </div>
 
                     <div class="space-y-2">
@@ -748,7 +756,8 @@
             },
             googleToken: null,
             editingItem: null,
-            usdTwdRate: 32.5
+            usdTwdRate: 32.5,
+            geminiApiKey: ''
         };
 
         window.onload = function() {
@@ -759,8 +768,10 @@
             state.transactions = db.get('transactions', []);
             state.monthlyIncome = db.get('monthlyIncome', 50000);
             state.usdTwdRate = Number(localStorage.getItem('wf_app_usdTwdRate')) || 32.5;
+            state.geminiApiKey = localStorage.getItem('wf_app_gemini_api_key') || '';
 
             document.getElementById('user-monthly-income').value = state.monthlyIncome;
+            document.getElementById('gemini-api-key').value = state.geminiApiKey;
             
             updateAllViews();
             switchTab('tab-dashboard');
@@ -938,7 +949,7 @@
                 div.className = "p-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex justify-between items-center";
                 div.innerHTML = `
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-theme-blue/30 flex items-center justify-center text-sm font-bold">
+                        <div class="w-8 h-8 rounded-full bg-theme-blue/30 flex items-center justify-center text-sm font-bold text-theme-darkblue">
                             ${isSavings ? '活' : '定'}
                         </div>
                         <div>
@@ -1134,6 +1145,12 @@
                 return;
             }
 
+            if (!state.geminiApiKey) {
+                showToast('⚠️ 請先點選頂部「同步設定」設定您的 Gemini API 金鑰！');
+                openSyncModal();
+                return;
+            }
+
             const btn = document.getElementById('btn-stock-update');
             const icon = document.getElementById('stock-update-icon');
             const txt = document.getElementById('stock-update-text');
@@ -1150,7 +1167,7 @@
             const systemPrompt = "你是一個高精度的全球金融市場行情數據 API。你必須完全使用 Google Search 來尋找正確的即時/最新延遲收盤股價與匯率。一律只回覆符合 JSON Schema 的規格，不要有額外的 Markdown 標記或引號。";
             const userPrompt = "請幫我用 Google Search 查詢以下股票與匯率的最新市場報價（美股查最新收盤價或盤中即時價，台股查台灣證券交易所最新成交價）：\n股票清單：[" + symbolsInfo.join(', ') + "]\n\n請回傳：\n1. 每一檔股票的最新每股市價（精確的浮點數，必須符合其計價幣別，如 TWD 查台幣價格，USD 查美金價格）。\n2. 美元兌新台幣（USD to TWD）的最新即時匯率（例如：32.65）。\n\n請一律以 JSON 物件回傳。";
 
-            const apiKey = ""; 
+            const apiKey = state.geminiApiKey;
             const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
             const payload = {
@@ -1214,7 +1231,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                showToast('❌ 行情刷新失敗，請檢查網路與 API 金鑰設置！');
+                showToast('❌ 行情刷新失敗，請確認您的 Gemini API 金鑰是否有效！');
             } finally {
                 if (btn) btn.disabled = false;
                 if (icon) icon.classList.remove('animate-spin');
@@ -1229,31 +1246,18 @@
                 return;
             }
 
+            if (!state.geminiApiKey) {
+                showToast('⚠️ 請先點選頂部「同步設定」設定您的 Gemini API 金鑰！');
+                openSyncModal();
+                return;
+            }
+
             const board = document.getElementById('ai-stock-advice-board');
             board.classList.remove('hidden');
             document.getElementById('ai-stock-overall-comment').innerText = "🤖 AI 分析師正在調閱最新市場數據與診斷組合風險...";
             document.getElementById('ai-stock-sell-target').innerText = "評估中...";
             document.getElementById('ai-stock-sell-reason').innerText = "正在為您精算歷史波幅與大盤相關度...";
             document.getElementById('ai-stock-buy-targets-list').innerHTML = "<div class='text-slate-400 italic font-medium text-[10px]'>正在計算高效率前緣配置...</div>";
-
-            const localOverallComment = `本機量化健檢：目前您共持有 ${state.stocks.length} 檔證券。經精密集中度演算，您的股票配置尚有優化分散的空間。建請依據下表的風險指標進行再配置。`;
-            let localWorstStock = state.stocks[0];
-            let worstReturn = 999;
-            state.stocks.forEach(s => {
-                const ret = (Number(s.currentPrice) - Number(s.buyPrice)) / Number(s.buyPrice);
-                if (ret < worstReturn) {
-                    worstReturn = ret;
-                    localWorstStock = s;
-                }
-            });
-
-            const localSellSymbol = localWorstStock.symbol;
-            const localSellName = localWorstStock.name;
-            const localSellReason = `此標的目前未實現回報率為 ${(worstReturn * 100).toFixed(2)}%，相較大盤表現相對疲軟。建議適度調撥此部位至抗震型 ETF 規避個股下行風險。`;
-            const localBuyTargets = [
-                { symbol: "VOO", name: "Vanguard S&P 500 ETF", reason: "全球最大規模指數型基金，完全分散投資於美股 500 強企業，提供穩健核心資產配置。" },
-                { symbol: "0050", name: "元大台灣50", reason: "台灣市值前 50 大企業龍頭集合，殖利率與資本增值潛力優異，適合新台幣部位首選。" }
-            ];
 
             const userPrompt = `
                 請依據我提供的個人證券投資組合，為我進行智慧投資組合健檢（調倉與配對交易建議）。
@@ -1268,8 +1272,8 @@
                 3. "buySuggestions": 陣列，長度為 2。代表建議使用者加碼或買入的新避險穩健標的（例如知名大型 ETF 如 VOO、0050、QQQ、VT 等），並說明為什麼這能優化風險收益比。
             `;
 
-            const systemPrompt = "你是一位頂尖的量化投資經理人與個人智慧理財顧問。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
-            const apiKey = ""; 
+            const systemPrompt = "你世紀頂尖的量化投資經理人與個人智慧理財顧問。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
+            const apiKey = state.geminiApiKey; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const payload = {
@@ -1343,23 +1347,8 @@
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('ai-stock-overall-comment').innerText = localOverallComment;
-                document.getElementById('ai-stock-sell-target').innerText = `${localSellName} (${localSellSymbol})`;
-                document.getElementById('ai-stock-sell-reason').innerText = localSellReason;
-
-                const buyContainer = document.getElementById('ai-stock-buy-targets-list');
-                buyContainer.innerHTML = '';
-                localBuyTargets.forEach(item => {
-                    const el = document.createElement('div');
-                    el.className = "border-b border-sky-100/50 pb-1 last:border-b-0 space-y-0.5";
-                    el.innerHTML = `
-                        <h6 class="font-black text-xs text-slate-800">${item.name} (${item.symbol})</h6>
-                        <p class="text-[9.5px] text-slate-500 leading-relaxed">${item.reason}</p>
-                    `;
-                    buyContainer.appendChild(el);
-                });
-
-                showToast('🤖 已啟動本機智慧精密量化財務引擎提供調倉對策！');
+                showToast('❌ 診斷失敗，請確認您的 Gemini API 金鑰設置！');
+                board.classList.add('hidden');
             }
         }
 
@@ -1423,6 +1412,12 @@
             state.monthlyIncome = Number(incVal) || 50000;
             db.set('monthlyIncome', state.monthlyIncome);
 
+            if (!state.geminiApiKey) {
+                showToast('⚠️ 請先點選頂部「同步設定」設定您的 Gemini API 金鑰！');
+                openSyncModal();
+                return;
+            }
+
             const totalSavings = state.banks.reduce((acc, b) => acc + Number(b.balance), 0);
             const totalCreditDebt = state.credits.reduce((acc, c) => acc + Number(c.debt), 0);
             
@@ -1436,9 +1431,6 @@
             board.classList.remove('hidden');
             document.getElementById('ai-safe-limit').innerText = 'AI 思考中...';
             document.getElementById('ai-advice-list').innerHTML = '<li class="text-slate-400 italic font-medium">正在透過金融防護網進行高精密財務規劃中...</li>';
-
-            const localSafeLimit = Math.max(state.monthlyIncome - totalMonthlySuggestedSavings - (totalCreditDebt * 0.1), 0);
-            const localHealthScore = Math.min(Math.round(((totalSavings - totalCreditDebt) / (state.monthlyIncome || 1)) * 30 + 50), 100);
 
             const userPrompt = `請依據我提供的個人財務資訊，為我規劃本月最安全的花費上限額度、給予一個財務安全健康分數（0-100），以及提供3個量身定制的理財專家精實攻略。
             
@@ -1454,7 +1446,7 @@
             3. "advices": 陣列字串，長度為3，代表對應這份資產與債務的關鍵財務改善攻略。`;
 
             const systemPrompt = "你是一個國際頂尖的 Fintech 個人理財與預算精算大師。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
-            const apiKey = ""; 
+            const apiKey = state.geminiApiKey; 
             const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
             const payload = {
@@ -1486,7 +1478,7 @@
                     body: JSON.stringify(payload)
                 });
                 
-                if (!response.ok) throw new Error('API 呼叫失敗，啟用備用高精度引擎');
+                if (!response.ok) throw new Error('API Request Failed');
 
                 const result = await response.json();
                 const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -1507,26 +1499,9 @@
                 showToast('🤖 AI 智慧理財專家已完成您的專屬預算規劃！');
 
             } catch (err) {
-                document.getElementById('ai-safe-limit').innerText = 'NT$ ' + Math.round(localSafeLimit).toLocaleString();
-                document.getElementById('ai-health-score').innerText = `財務安全：${localHealthScore} 分 (本地精算)`;
-                
-                const advContainer = document.getElementById('ai-advice-list');
-                advContainer.innerHTML = '';
-                
-                const fallbackAdvices = [
-                    `您的月目標提撥總合為 NT$ ${Math.round(totalMonthlySuggestedSavings).toLocaleString()} 元，建議發薪日當天透過網銀自動提撥以實踐強迫儲蓄。`,
-                    `目前信用卡有 NT$ ${totalCreditDebt.toLocaleString()} 元尚未繳納，請謹防滾入循環利息。`,
-                    `若欲提升財務安全級別，建議儲備相當於 3-6 個月固定開銷的活期資金作為「緊急預備金」目標。`
-                ];
-
-                fallbackAdvices.forEach(adv => {
-                    const li = document.createElement('div');
-                    li.className = "p-2 bg-slate-50 border border-slate-100 rounded-xl text-[10.5px] text-slate-600 font-medium mb-1.5 flex gap-2 items-start";
-                    li.innerHTML = `<span class="text-theme-darkpink mt-0.5">✦</span> <span>${adv}</span>`;
-                    advContainer.appendChild(li);
-                });
-
-                showToast('🤖 已啟動本機智慧精密財務引擎提供理財規劃！');
+                console.error(err);
+                showToast('❌ 規劃失敗，請檢查您的 Gemini API 金鑰設置！');
+                board.classList.add('hidden');
             }
         }
 
@@ -2057,6 +2032,11 @@
         }
 
         function closeSyncModal() {
+            // 自動儲存 Gemini API Key 到本地端
+            const keyVal = document.getElementById('gemini-api-key').value.trim();
+            state.geminiApiKey = keyVal;
+            localStorage.setItem('wf_app_gemini_api_key', keyVal);
+
             document.getElementById('sync-modal').classList.add('hidden');
         }
 
@@ -2114,7 +2094,7 @@
                 monthlyIncome: state.monthlyIncome
             };
 
-            const fileContent = JSON.stringify(payloadData, null, 2);
+            const backupFile = JSON.stringify(payloadData, null, 2);
 
             try {
                 const existingFile = await findBackupFileOnDrive();
@@ -2127,7 +2107,7 @@
                             'Authorization': 'Bearer ' + state.googleToken,
                             'Content-Type': 'application/json'
                         },
-                        body: fileContent
+                        body: backupFile
                     });
 
                     if (uploadResponse.ok) {
@@ -2136,9 +2116,7 @@
                         document.getElementById('sync-last-time').innerText = nowStr;
                         showToast('🎉 資料上傳並覆蓋更新成功！');
                     } else {
-                        const errorTxt = await uploadResponse.text();
-                        console.error('Upload failed details:', errorTxt);
-                        showToast('❌ 備份失敗！⚠️ 請確認 Google Drive API 是否啟用。');
+                        showToast('❌ 備份失敗！⚠️ 請至 Google Console 啟用 Google Drive API。');
                     }
                 } else {
                     const metadata = {
@@ -2156,7 +2134,7 @@
                         JSON.stringify(metadata) +
                         delimiter +
                         "Content-Type: application/json\r\n\r\n" +
-                        fileContent +
+                        backupFile +
                         close_delim;
 
                     const createUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
@@ -2175,8 +2153,6 @@
                         document.getElementById('sync-last-time').innerText = nowStr;
                         showToast('🎉 已在雲端硬碟建立新備份並上傳成功！');
                     } else {
-                        const errorTxt = await createResponse.text();
-                        console.error('Create failed details:', errorTxt);
                         showToast('❌ 備份失敗！⚠️ 請至 Google Console 啟用 Google Drive API。');
                     }
                 }
