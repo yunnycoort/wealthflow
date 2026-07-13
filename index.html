@@ -53,60 +53,36 @@
             padding-top: env(safe-area-inset-top, 0px);
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
-        /* 載入旋轉動畫 */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .animate-spin-slow {
-            animation: spin 2s linear infinite;
-        }
-        /* 彈跳載入錢包 */
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-12px); }
-        }
-        .animate-bounce-slow {
-            animation: bounce-slow 2s ease-in-out infinite;
-        }
     </style>
 </head>
 <body class="h-full flex justify-center items-start overflow-hidden">
-
-    <!-- App 智慧啟動畫面 (Splash Screen) -->
-    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col justify-between items-center bg-gradient-to-tr from-theme-blue to-theme-pink p-8 transition-all duration-700 ease-out">
-        <!-- 頂部留空 -->
-        <div></div>
-
-        <!-- 中間品牌區 -->
-        <div class="flex flex-col items-center text-center space-y-4">
-            <div class="relative w-28 h-28 flex items-center justify-center">
-                <!-- 旋轉環 -->
-                <div class="absolute inset-0 border-4 border-white/40 border-t-theme-darkpink rounded-full animate-spin-slow"></div>
-                <!-- 彈跳錢包 -->
-                <div class="text-5xl animate-bounce-slow">👛</div>
+    <!-- App 啟動畫面 (Splash Screen) -->
+    <div id="splash-screen" class="fixed inset-0 bg-gradient-to-tr from-sky-100 via-white to-pink-100 z-[9999] flex flex-col items-center justify-center p-6 transition-all duration-500">
+        <div class="text-center space-y-6 max-w-sm">
+            <div class="relative inline-block">
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-xl border border-sky-100 animate-bounce">
+                    <span class="text-5xl">👛</span>
+                </div>
+                <div class="absolute -right-2 -bottom-2 bg-pink-100 text-pink-600 font-black text-xs px-2.5 py-1 rounded-full shadow border border-white">
+                    v1.6 Real
+                </div>
             </div>
-            <div>
-                <h1 class="text-2xl font-black text-slate-800 tracking-widest">WealthFlow</h1>
-                <p class="text-xs font-bold text-slate-500 mt-1">豐記帳 · 手機智慧專屬帳本</p>
+            
+            <div class="space-y-2">
+                <h1 class="text-2xl font-black text-slate-800 tracking-wider">WealthFlow 豐記帳</h1>
+                <p class="text-xs font-bold text-slate-500">馬卡龍粉藍 • 智慧跨端資產帳本</p>
             </div>
-        </div>
 
-        <!-- 底部啟動與提示區 -->
-        <div class="w-full max-w-xs flex flex-col items-center space-y-6">
-            <!-- 實體合法的全螢幕啟動鈕 -->
-            <button onclick="startAppWithFullscreen()" class="w-full bg-gradient-to-r from-theme-darkblue to-theme-darkpink text-white font-black py-4 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all text-sm tracking-widest flex items-center justify-center gap-2">
-                <span>⚡ 啟動 WealthFlow 帳本</span>
+            <div class="p-4 bg-white/60 border border-white rounded-2xl text-[10.5px] text-slate-500 leading-relaxed text-left space-y-1 shadow-sm">
+                <span class="font-bold text-slate-700 block">💡 手機專用載入須知：</span>
+                <p>• 點擊下方啟動按鈕，即會<b>自動進入 100% 滿版無邊框全螢幕狀態</b>！</p>
+                <p>• 系統不儲存您的隱私，所有資料皆安全保存於本機中。</p>
+            </div>
+
+            <button onclick="launchAppAndRequestFullscreen()" class="w-full bg-gradient-to-r from-theme-darkblue to-theme-darkpink text-white font-black py-3.5 px-6 rounded-2xl shadow-lg active:scale-95 transition-all text-sm tracking-widest flex items-center justify-center gap-2">
+                <span>👛 啟動 WealthFlow 帳本</span>
+                <i class="fa-solid fa-arrow-right"></i>
             </button>
-
-            <!-- 智慧跨平台提示 -->
-            <div id="ios-tip" class="hidden text-center bg-white/60 border border-white/80 p-3 rounded-2xl shadow-sm text-[10px] text-slate-600 leading-relaxed">
-                <span class="font-extrabold text-theme-darkpink block mb-0.5">💡 蘋果 iOS 用戶溫馨提示：</span>
-                點擊 Safari 下方「分享」按鈕，選擇「加入主畫面」，即可永久享受 100% 全螢幕免網址列 PWA 原生體驗！
-            </div>
-            <div id="android-tip" class="text-center bg-white/40 p-2.5 rounded-xl text-[9px] text-slate-500">
-                點擊上方按鈕將自動啟用 HTML5 滿版全螢幕模式
-            </div>
         </div>
     </div>
 
@@ -125,13 +101,13 @@
                 </div>
             </div>
             
-            <!-- 功能控制按鈕 -->
             <div class="flex items-center gap-1.5">
-                <!-- 全螢幕切換手動鈕 -->
-                <button onclick="toggleFullScreen()" class="w-8 h-8 bg-white text-theme-darkblue hover:bg-theme-blue transition-colors rounded-full flex items-center justify-center shadow-md" title="手動切換全螢幕">
-                    <i id="fs-icon" class="fa-solid fa-expand text-xs"></i>
+                <!-- 手動全螢幕控制 -->
+                <button onclick="toggleAppFullscreen()" class="w-8 h-8 bg-white/70 text-slate-600 hover:bg-white transition-all rounded-full flex items-center justify-center text-xs shadow-md">
+                    <i class="fa-solid fa-expand"></i>
                 </button>
-                <button onclick="openSyncModal()" class="flex items-center gap-1.5 bg-white text-theme-darkblue hover:bg-theme-blue transition-colors px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
+                <!-- 同步按鈕 -->
+                <button onclick="openSyncModal()" class="flex items-center gap-1 bg-white text-theme-darkblue hover:bg-theme-blue transition-colors px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
                     <i class="fa-solid fa-cloud"></i>
                     <span>同步</span>
                 </button>
@@ -215,8 +191,9 @@
                 </div>
             </section>
 
-            <!-- 分頁 2: 資產 Assets -->
+            <!-- 分頁 2: 資產 Assets (包含 銀行存款 & 證券股票 子分頁) -->
             <section id="tab-assets" class="hidden space-y-5">
+                <!-- 頂部馬卡龍雙軌切換開關 -->
                 <div class="flex bg-slate-100 p-1 rounded-full border border-slate-200">
                     <button id="btn-sub-bank" onclick="selectAssetSubTab('bank')" class="flex-1 py-2 text-xs font-black rounded-full transition-all bg-white text-slate-800 shadow-sm">
                         🏦 銀行存款
@@ -235,7 +212,9 @@
                                 + 新增帳戶
                             </button>
                         </div>
-                        <div class="space-y-2" id="bank-list-container"></div>
+                        <div class="space-y-2" id="bank-list-container">
+                            <!-- 動態渲染存款帳戶 -->
+                        </div>
                     </div>
 
                     <div class="space-y-3 pt-2">
@@ -245,7 +224,9 @@
                                 + 新增卡片
                             </button>
                         </div>
-                        <div class="space-y-3" id="credit-list-container"></div>
+                        <div class="space-y-3" id="credit-list-container">
+                            <!-- 動態渲染信用卡卡片 -->
+                        </div>
                     </div>
                 </div>
 
@@ -253,11 +234,11 @@
                 <div id="sub-asset-stocks" class="hidden space-y-4">
                     <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-4 rounded-2xl shadow-md flex justify-between items-center">
                         <div>
-                            <span class="text-[10px] text-emerald-100 font-bold block uppercase tracking-wider">證券資產市值</span>
+                            <span class="text-[10px] text-emerald-100 font-bold block uppercase tracking-wider">證券資產總市值 (折合台幣)</span>
                             <span class="text-2xl font-black" id="stock-total-value">NT$ 0</span>
                         </div>
                         <div class="text-right">
-                            <span class="text-[10px] text-emerald-100 font-bold block uppercase tracking-wider">未實現損益</span>
+                            <span class="text-[10px] text-emerald-100 font-bold block uppercase tracking-wider">未實現總損益</span>
                             <span class="text-base font-extrabold" id="stock-unrealized-profit">NT$ 0 (0.00%)</span>
                         </div>
                     </div>
@@ -265,8 +246,11 @@
                     <div class="flex justify-between items-center">
                         <h3 class="text-sm font-black text-slate-700">📊 持股清單明細</h3>
                         <div class="flex gap-1.5">
-                            <button onclick="triggerStockSimulation()" class="text-[10px] bg-amber-50 text-amber-700 hover:bg-amber-100 px-2 py-1 rounded-full font-bold border border-amber-200">
-                                <i class="fa-solid fa-rotate"></i> 模擬更新
+                            <button id="btn-stock-update" onclick="fetchRealStockPrices()" class="text-[10px] bg-sky-50 text-sky-700 hover:bg-sky-100 px-2.5 py-1.5 rounded-full font-bold border border-sky-200 flex items-center gap-1 shadow-sm transition-all active:scale-95">
+                                <i id="stock-update-icon" class="fa-solid fa-arrows-rotate"></i> <span id="stock-update-text">真實行情更新</span>
+                            </button>
+                            <button onclick="triggerStockRebalancing()" class="text-[10px] bg-pink-50 text-theme-darkpink hover:bg-pink-100 px-2.5 py-1.5 rounded-full font-bold border border-pink-200 flex items-center gap-1 shadow-sm transition-all active:scale-95">
+                                <i class="fa-solid fa-robot animate-pulse"></i> <span>AI 調倉建議</span>
                             </button>
                             <button onclick="openStockModal()" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2.5 py-1 rounded-full font-bold border border-emerald-200">
                                 + 新增持股
@@ -274,9 +258,55 @@
                         </div>
                     </div>
 
-                    <div class="space-y-2.5" id="stock-list-container"></div>
+                    <div class="space-y-2.5" id="stock-list-container">
+                        <!-- 動態渲染股票項目 -->
+                    </div>
+
+                    <!-- AI 股票調倉建議呈現面板 -->
+                    <div id="ai-stock-advice-board" class="hidden bg-white border border-pink-100 rounded-3xl p-5 shadow-md space-y-4">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h4 class="text-xs font-black text-theme-darkpink flex items-center gap-1.5">
+                                <i class="fa-solid fa-robot"></i>
+                                <span>AI 投資組合健檢專家</span>
+                            </h4>
+                            <span class="text-[9px] bg-pink-100 text-theme-darkpink font-extrabold px-1.5 py-0.5 rounded">調倉對策</span>
+                        </div>
+
+                        <div class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wider mb-1">💼 投資組合綜評</span>
+                            <p id="ai-stock-overall-comment" class="font-medium text-slate-700">正在評估持股分佈與集中度...</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- 建議減持/賣出 -->
+                            <div class="p-3.5 bg-rose-50 border border-rose-100 rounded-2xl space-y-1">
+                                <div class="flex items-center gap-1.5 text-rose-700 font-extrabold text-[11px]">
+                                    <i class="fa-solid fa-circle-minus"></i>
+                                    <span>建議減碼/賣出標的</span>
+                                </div>
+                                <h5 class="font-black text-xs text-slate-800" id="ai-stock-sell-target">未選定</h5>
+                                <p class="text-[10px] text-slate-500 leading-relaxed" id="ai-stock-sell-reason">持股比例偏高或波動較大，建議適度調節溢出之利潤。</p>
+                            </div>
+
+                            <!-- 建議加碼/買入 -->
+                            <div class="p-3.5 bg-sky-50 border border-sky-100 rounded-2xl space-y-1">
+                                <div class="flex items-center gap-1.5 text-theme-darkblue font-extrabold text-[11px]">
+                                    <i class="fa-solid fa-circle-plus"></i>
+                                    <span>建議加碼/買入標的</span>
+                                </div>
+                                <div id="ai-stock-buy-targets-list" class="space-y-1.5">
+                                    <!-- 動態渲染加碼列表 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-100 text-[8px] text-slate-400 leading-relaxed">
+                            ⚠️ 免責聲明：以上為 AI 個人化分析與模擬配置，不構成實際投資、法律或保險之邀約建議。請務必評估個人風險承受度。
+                        </div>
+                    </div>
+
                     <p class="text-[9px] text-slate-400 text-center italic mt-2">
-                        *提示：系統內置虛擬股市即時行情模擬器，現價預設每過 15 秒會進行微幅隨機波動。
+                        *提示：系統將整合 Gemini 搭配 Google 搜尋網路，一鍵精準查出全球最新收盤與即時市價，並折合匯率。
                     </p>
                 </div>
             </section>
@@ -305,10 +335,11 @@
                             + 新增目標
                         </button>
                     </div>
-                    <div class="space-y-3.5" id="goal-list-container"></div>
+                    <div class="space-y-3.5" id="goal-list-container">
+                        <!-- 動態渲染儲蓄目標 -->
+                    </div>
                 </div>
 
-                <!-- AI 理財規劃成果呈現板 -->
                 <div id="ai-planning-result-board" class="hidden bg-white border border-pink-100 rounded-3xl p-5 shadow-md space-y-4">
                     <div class="flex justify-between items-center border-b pb-2">
                         <h4 class="text-xs font-black text-theme-darkpink flex items-center gap-1.5">
@@ -325,7 +356,9 @@
 
                     <div class="space-y-2">
                         <span class="text-[10px] text-slate-400 font-bold block">💡 專家理財攻略</span>
-                        <div class="text-xs text-slate-600 space-y-2 leading-relaxed" id="ai-advice-list"></div>
+                        <div class="text-xs text-slate-600 space-y-2 leading-relaxed" id="ai-advice-list">
+                            <!-- AI 回應清單 -->
+                        </div>
                     </div>
                 </div>
             </section>
@@ -358,7 +391,9 @@
                     </div>
                 </div>
 
-                <div class="space-y-2" id="transaction-list-container"></div>
+                <div class="space-y-2" id="transaction-list-container">
+                    <!-- 動態渲染明細項目 -->
+                </div>
             </section>
         </main>
 
@@ -368,12 +403,12 @@
                 <i class="fa-solid fa-house text-lg"></i>
                 <span class="text-[9px]">總覽</span>
             </button>
+            
             <button onclick="switchTab('tab-assets')" id="nav-tab-assets" class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
                 <i class="fa-solid fa-wallet text-lg"></i>
                 <span class="text-[9px]">資產</span>
             </button>
 
-            <!-- 懸浮記帳按鈕 (FAB) -->
             <div class="flex-1 flex justify-center -mt-6">
                 <button onclick="openCalcModal()" class="w-14 h-14 bg-gradient-to-tr from-theme-darkblue to-cyan-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
                     <i class="fa-solid fa-plus text-xl"></i>
@@ -384,13 +419,14 @@
                 <i class="fa-solid fa-bullseye text-lg"></i>
                 <span class="text-[9px]">目標/AI</span>
             </button>
+
             <button onclick="switchTab('tab-transactions')" id="nav-tab-transactions" class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
                 <i class="fa-solid fa-list-ul text-lg"></i>
                 <span class="text-[9px]">明細</span>
             </button>
         </nav>
 
-        <!-- 計算機記帳 Modal -->
+        <!-- 彈出視窗：計算機記帳 -->
         <div id="calc-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end justify-center transition-opacity duration-300">
             <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto">
                 <div class="flex justify-between items-center border-b pb-2">
@@ -422,7 +458,9 @@
                     </div>
                     <div>
                         <label class="block text-[9px] text-slate-400 font-bold mb-1">具體卡片 / 銀行選定</label>
-                        <select id="calc-payment-account" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-700 font-bold"></select>
+                        <select id="calc-payment-account" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-700 font-bold">
+                            <!-- 動態裝填 -->
+                        </select>
                     </div>
                 </div>
 
@@ -463,7 +501,7 @@
             </div>
         </div>
 
-        <!-- 同步 Modal -->
+        <!-- Google Drive 同步設定對話視窗 -->
         <div id="sync-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-[2rem] p-5 shadow-2xl space-y-4">
                 <div class="flex justify-between items-center border-b pb-2">
@@ -474,7 +512,7 @@
                 <div class="space-y-3.5 text-xs text-slate-600">
                     <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
                         <label class="block text-[10px] text-slate-400 font-bold">1. 輸入您的 Google API Client ID</label>
-                        <input type="text" id="g-client-id" placeholder="貼上 Google Console Client ID..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] text-slate-600 focus:outline-none focus:border-theme-darkblue">
+                        <input type="text" id="g-client-id" placeholder="貼上在 Google Console 取得的 Client ID..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] text-slate-600 focus:outline-none focus:border-theme-darkblue">
                         
                         <div class="p-2 bg-pink-50 rounded-lg border border-pink-100 text-[8.5px] text-slate-500 space-y-1">
                             <span class="font-extrabold text-theme-darkpink">💡 解決 400: origin_mismatch 錯誤：</span>
@@ -483,6 +521,10 @@
                                 <span id="g-origin-val" class="font-mono bg-white border px-1.5 py-0.5 rounded text-slate-600 select-all break-all">取得中...</span>
                             </div>
                         </div>
+
+                        <p class="text-[8.5px] text-slate-400">
+                            *首次設定需前往 Google Cloud 免費建立憑證。
+                        </p>
                     </div>
 
                     <div class="space-y-2">
@@ -518,7 +560,7 @@
             </div>
         </div>
 
-        <!-- 存款帳戶 Modal -->
+        <!-- 彈出視窗：新增/編輯 存款帳戶 -->
         <div id="bank-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">🏦 存款帳戶管理</h4>
@@ -546,7 +588,7 @@
             </div>
         </div>
 
-        <!-- 信用卡 Modal -->
+        <!-- 彈出視窗：新增/編輯 信用卡卡片 -->
         <div id="credit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3.5">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">💳 信用卡卡片設定</h4>
@@ -579,7 +621,7 @@
                         <span class="block text-[9px] text-theme-darkpink font-extrabold">🏦 設定一鍵轉帳繳款代碼</span>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[8px] text-slate-400 font-bold mb-0.5">銀行代碼 (如 822)</label>
+                                <label class="block text-[8px] text-slate-400 font-bold mb-0.5">銀行代碼</label>
                                 <input type="text" id="credit-bank-code" placeholder="如 822" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none">
                             </div>
                             <div>
@@ -596,7 +638,7 @@
             </div>
         </div>
 
-        <!-- 證券股票 Modal -->
+        <!-- 彈出視窗：新增/編輯 股票持股 -->
         <div id="stock-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">📈 證券持股設定</h4>
@@ -613,7 +655,7 @@
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">買入成本價 (NT$/$)</label>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">買入成本價</label>
                             <input type="number" id="stock-buy-price" step="0.01" placeholder="買入每股均價" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none">
                         </div>
                         <div>
@@ -621,9 +663,18 @@
                             <input type="number" id="stock-shares" placeholder="持股數量" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none">
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1">當前市場現價 (NT$/$)</label>
-                        <input type="number" id="stock-current-price" step="0.01" placeholder="今日市價(後續會自動跳動)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">計價幣別</label>
+                            <select id="stock-currency" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-bold focus:outline-none">
+                                <option value="TWD">TWD (新台幣 NT$)</option>
+                                <option value="USD">USD (美金 US$)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">當前市場現價</label>
+                            <input type="number" id="stock-current-price" step="0.01" placeholder="最新現價" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none">
+                        </div>
                     </div>
                 </div>
                 <div class="flex gap-2 pt-2">
@@ -633,7 +684,7 @@
             </div>
         </div>
 
-        <!-- 儲蓄目標 Modal -->
+        <!-- 彈出視窗：新增/編輯 儲蓄目標 -->
         <div id="goal-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">🎯 理財儲蓄目標管理</h4>
@@ -664,12 +715,10 @@
             </div>
         </div>
 
-        <!-- 訊息通知小吐司 Toast -->
         <div id="toast" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[11px] font-bold px-4 py-2.5 rounded-full shadow-lg z-50 text-center tracking-wide whitespace-nowrap"></div>
 
     </div>
 
-    <!-- JavaScript 核心功能邏輯 -->
     <script>
         const db = {
             get: (key, defaultValue) => {
@@ -698,88 +747,30 @@
                 hasCalculated: false
             },
             googleToken: null,
-            editingItem: null
+            editingItem: null,
+            usdTwdRate: 32.5
         };
 
         window.onload = function() {
-            // 載入本地儲存庫
             state.banks = db.get('banks', []);
             state.credits = db.get('credits', []);
             state.stocks = db.get('stocks', []);
             state.goals = db.get('goals', []);
             state.transactions = db.get('transactions', []);
             state.monthlyIncome = db.get('monthlyIncome', 50000);
+            state.usdTwdRate = Number(localStorage.getItem('wf_app_usdTwdRate')) || 32.5;
 
             document.getElementById('user-monthly-income').value = state.monthlyIncome;
             
             updateAllViews();
             switchTab('tab-dashboard');
 
-            // 每 15 秒更新一次虛擬股市
-            setInterval(autoMarketTick, 15000);
-
-            // 裝置自動提示設定
-            detectPlatformTips();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('Service Worker Registered Successfully'))
+                    .catch(err => console.log('Service Worker Registration Failed', err));
+            }
         };
-
-        // 偵測裝置顯示對應提示
-        function detectPlatformTips() {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            const isIos = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-            if (isIos) {
-                document.getElementById('ios-tip').classList.remove('hidden');
-                document.getElementById('android-tip').classList.add('hidden');
-            }
-        }
-
-        // 啟動 Splash 畫面一鍵全螢幕與淡出
-        function startAppWithFullscreen() {
-            // 嘗試進入全螢幕 (標準 API 呼叫)
-            const doc = document.documentElement;
-            if (doc.requestFullscreen) {
-                doc.requestFullscreen().catch(() => {});
-            } else if (doc.webkitRequestFullscreen) {
-                doc.webkitRequestFullscreen();
-            }
-
-            // Splash 淡出動畫
-            const splash = document.getElementById('splash-screen');
-            splash.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                splash.remove();
-            }, 700);
-        }
-
-        function toggleFullScreen() {
-            const doc = document.documentElement;
-            const icon = document.getElementById('fs-icon');
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                if (doc.requestFullscreen) {
-                    doc.requestFullscreen().catch(() => {});
-                } else if (doc.webkitRequestFullscreen) {
-                    doc.webkitRequestFullscreen();
-                }
-                icon.className = "fa-solid fa-compress text-xs";
-                showToast("已手動進入全螢幕模式！");
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-                icon.className = "fa-solid fa-expand text-xs";
-                showToast("已退出全螢幕。");
-            }
-        }
-
-        document.addEventListener('fullscreenchange', () => {
-            const icon = document.getElementById('fs-icon');
-            if (document.fullscreenElement) {
-                icon.className = "fa-solid fa-compress text-xs";
-            } else {
-                icon.className = "fa-solid fa-expand text-xs";
-            }
-        });
 
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -790,23 +781,50 @@
             }, 2500);
         }
 
+        function launchAppAndRequestFullscreen() {
+            const splash = document.getElementById('splash-screen');
+            splash.classList.add('opacity-0');
+            setTimeout(() => {
+                splash.classList.add('hidden');
+            }, 500);
+            
+            requestTrueFullscreen();
+        }
+
+        function requestTrueFullscreen() {
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch(err => console.log('Fullscreen rejected', err));
+            } else if (docEl.webkitRequestFullscreen) {
+                docEl.webkitRequestFullscreen().catch(err => console.log('Webkit Fullscreen rejected', err));
+            }
+        }
+
+        function toggleAppFullscreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                requestTrueFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        }
+
         function switchTab(tabId) {
             const tabs = ['tab-dashboard', 'tab-assets', 'tab-goals', 'tab-transactions'];
             tabs.forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 const navBtn = document.getElementById('nav-' + id);
-                if (navBtn) {
-                    navBtn.classList.remove('text-theme-darkblue', 'font-bold');
-                    navBtn.classList.add('text-slate-400', 'font-medium');
-                }
+                navBtn.classList.remove('text-theme-darkblue', 'font-bold');
+                navBtn.classList.add('text-slate-400', 'font-medium');
             });
 
             document.getElementById(tabId).classList.remove('hidden');
             const activeNavBtn = document.getElementById('nav-' + tabId);
-            if (activeNavBtn) {
-                activeNavBtn.classList.add('text-theme-darkblue', 'font-bold');
-                activeNavBtn.classList.remove('text-slate-400', 'font-medium');
-            }
+            activeNavBtn.classList.add('text-theme-darkblue', 'font-bold');
+            activeNavBtn.classList.remove('text-slate-400', 'font-medium');
 
             state.activeTab = tabId;
             updateAllViews();
@@ -833,29 +851,42 @@
         }
 
         function updateAllViews() {
+            const usdTwdRate = state.usdTwdRate || 32.5;
+
             const totalSavings = state.banks.reduce((acc, b) => acc + Number(b.balance), 0);
             document.getElementById('mini-bank-total').innerText = 'NT$ ' + totalSavings.toLocaleString();
 
             const totalCreditDebt = state.credits.reduce((acc, c) => acc + Number(c.debt), 0);
             document.getElementById('mini-credit-debt').innerText = 'NT$ ' + totalCreditDebt.toLocaleString();
 
-            const totalStockValue = state.stocks.reduce((acc, s) => acc + (Number(s.shares) * Number(s.currentPrice)), 0);
-            document.getElementById('stock-total-value').innerText = 'NT$ ' + totalStockValue.toLocaleString();
+            const totalStockValue = state.stocks.reduce((acc, s) => {
+                const price = Number(s.currentPrice) || 0;
+                const shares = Number(s.shares) || 0;
+                const rate = (s.currency === 'USD') ? usdTwdRate : 1;
+                return acc + (shares * price * rate);
+            }, 0);
+            document.getElementById('stock-total-value').innerText = 'NT$ ' + Math.round(totalStockValue).toLocaleString();
 
-            const totalStockCost = state.stocks.reduce((acc, s) => acc + (Number(s.shares) * Number(s.buyPrice)), 0);
+            const totalStockCost = state.stocks.reduce((acc, s) => {
+                const buyPrice = Number(s.buyPrice) || 0;
+                const shares = Number(s.shares) || 0;
+                const rate = (s.currency === 'USD') ? usdTwdRate : 1;
+                return acc + (shares * buyPrice * rate);
+            }, 0);
+
             const totalStockProfit = totalStockValue - totalStockCost;
             const stockProfitRatio = totalStockCost > 0 ? (totalStockProfit / totalStockCost * 100).toFixed(2) : '0.00';
             const profitTxt = document.getElementById('stock-unrealized-profit');
             if (totalStockProfit >= 0) {
-                profitTxt.innerText = `▲ NT$ ${totalStockProfit.toLocaleString()} (+${stockProfitRatio}%)`;
+                profitTxt.innerText = `▲ NT$ ${Math.round(totalStockProfit).toLocaleString()} (+${stockProfitRatio}%)`;
                 profitTxt.className = "text-base font-extrabold text-emerald-100";
             } else {
-                profitTxt.innerText = `▼ NT$ ${Math.abs(totalStockProfit).toLocaleString()} (${stockProfitRatio}%)`;
+                profitTxt.innerText = `▼ NT$ ${Math.round(Math.abs(totalStockProfit)).toLocaleString()} (${stockProfitRatio}%)`;
                 profitTxt.className = "text-base font-extrabold text-rose-200";
             }
 
             const netWorth = totalSavings + totalStockValue - totalCreditDebt;
-            document.getElementById('dash-total-net').innerText = 'NT$ ' + netWorth.toLocaleString();
+            document.getElementById('dash-total-net').innerText = 'NT$ ' + Math.round(netWorth).toLocaleString();
 
             const today = new Date();
             const thisYearMonth = today.toISOString().substring(0, 7);
@@ -907,7 +938,7 @@
                 div.className = "p-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex justify-between items-center";
                 div.innerHTML = `
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-theme-blue/30 flex items-center justify-center text-sm">
+                        <div class="w-8 h-8 rounded-full bg-theme-blue/30 flex items-center justify-center text-sm font-bold">
                             ${isSavings ? '活' : '定'}
                         </div>
                         <div>
@@ -975,7 +1006,6 @@
 
                         <div class="flex gap-2">
                             <button onclick="editCreditCardObject('${c.id}')" class="text-[9px] text-slate-300 font-extrabold hover:underline">設定</button>
-                            <button onclick="deleteCreditCardObject('${c.id}')" class="text-[9px] text-rose-300 font-extrabold hover:underline">刪除</button>
                             <button onclick="quickPayCardDebt('${c.id}')" class="bg-gradient-to-r from-theme-pink to-theme-darkpink text-white font-black text-[9px] px-2.5 py-1 rounded-full hover:opacity-90 active:scale-95 transition-all">
                                 💳 快速還卡費
                             </button>
@@ -998,7 +1028,7 @@
             tempTextarea.select();
             try {
                 document.execCommand('copy');
-                showToast('📋 轉帳資訊已複製至剪貼簿！');
+                showToast('📋 轉帳資訊已完美複製至剪貼簿！');
             } catch (err) {
                 showToast('複製失敗，請手動複製。');
             }
@@ -1010,7 +1040,7 @@
             if (!card) return;
 
             if (Number(card.debt) <= 0) {
-                showToast('該卡片目前無欠款！');
+                showToast('該卡片目前無欠款，無需繳納！');
                 return;
             }
 
@@ -1064,6 +1094,7 @@
             }
 
             state.stocks.forEach(s => {
+                const currencySymbol = s.currency === 'USD' ? '$' : 'NT$';
                 const totalCost = Number(s.shares) * Number(s.buyPrice);
                 const totalVal = Number(s.shares) * Number(s.currentPrice);
                 const profit = totalVal - totalCost;
@@ -1078,13 +1109,14 @@
                         <div class="flex items-center gap-1.5">
                             <span class="text-xs font-black text-slate-800">${s.name}</span>
                             <span class="text-[9px] font-mono bg-slate-100 text-slate-500 px-1 py-0.5 rounded font-bold">${s.symbol}</span>
+                            <span class="text-[8px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded font-extrabold">${s.currency || 'TWD'}</span>
                         </div>
-                        <p class="text-[9px] text-slate-400 mt-0.5">${Number(s.shares).toLocaleString()} 股 | 買入均價 $${Number(s.buyPrice).toLocaleString()}</p>
+                        <p class="text-[9px] text-slate-400 mt-0.5">${Number(s.shares).toLocaleString()} 股 | 買入均價 ${currencySymbol}${Number(s.buyPrice).toLocaleString()}</p>
                     </div>
                     <div class="text-right">
-                        <p class="font-black text-xs text-slate-800">$${Number(s.currentPrice).toLocaleString()}</p>
+                        <p class="font-black text-xs text-slate-800">${currencySymbol}${Number(s.currentPrice).toLocaleString()}</p>
                         <span class="text-[9px] font-bold ${isProfit ? 'text-emerald-600' : 'text-rose-600'}">
-                            ${isProfit ? '▲' : '▼'} ${Number(profit).toFixed(0)} (${isProfit ? '+' : ''}${profitRatio}%)
+                            ${isProfit ? '▲' : '▼'} ${currencySymbol}${Math.round(Math.abs(profit)).toLocaleString()} (${isProfit ? '+' : ''}${profitRatio}%)
                         </span>
                         <div class="flex gap-1.5 justify-end mt-0.5">
                             <button onclick="editStockObject('${s.id}')" class="text-[8px] text-slate-400 hover:underline">編輯</button>
@@ -1096,23 +1128,239 @@
             });
         }
 
-        function autoMarketTick() {
-            if (state.stocks.length === 0) return;
-            state.stocks.forEach(s => {
-                const vol = (Math.random() - 0.49) * 0.015;
-                const newPrice = Number(s.currentPrice) * (1 + vol);
-                s.currentPrice = parseFloat(newPrice.toFixed(2));
+        async function fetchRealStockPrices() {
+            if (state.stocks.length === 0) {
+                showToast('📌 持股清單中無任何股票，請先點擊「新增持股」！');
+                return;
+            }
+
+            const btn = document.getElementById('btn-stock-update');
+            const icon = document.getElementById('stock-update-icon');
+            const txt = document.getElementById('stock-update-text');
+            
+            if (btn) btn.disabled = true;
+            if (icon) icon.classList.add('animate-spin');
+            if (txt) txt.innerText = '正在獲取真實行情...';
+
+            const symbolsInfo = state.stocks.map(s => {
+                const curr = s.currency || 'TWD';
+                return s.symbol + '（幣別:' + curr + '）';
             });
-            db.set('stocks', state.stocks);
-            if (state.activeTab === 'tab-assets' && state.activeAssetSubTab === 'stocks') {
+            
+            const systemPrompt = "你是一個高精度的全球金融市場行情數據 API。你必須完全使用 Google Search 來尋找正確的即時/最新延遲收盤股價與匯率。一律只回覆符合 JSON Schema 的規格，不要有額外的 Markdown 標記或引號。";
+            const userPrompt = "請幫我用 Google Search 查詢以下股票與匯率的最新市場報價（美股查最新收盤價或盤中即時價，台股查台灣證券交易所最新成交價）：\n股票清單：[" + symbolsInfo.join(', ') + "]\n\n請回傳：\n1. 每一檔股票的最新每股市價（精確的浮點數，必須符合其計價幣別，如 TWD 查台幣價格，USD 查美金價格）。\n2. 美元兌新台幣（USD to TWD）的最新即時匯率（例如：32.65）。\n\n請一律以 JSON 物件回傳。";
+
+            const apiKey = ""; 
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                tools: [{ "google_search": {} }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "usdTwdRate": { "type": "NUMBER", "description": "當前最新美元兌新台幣匯率" },
+                            "prices": {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        "symbol": { "type": "STRING", "description": "股票代碼 (英文大寫)" },
+                                        "currentPrice": { "type": "NUMBER", "description": "最新股票市場單股成交價" }
+                                    },
+                                    "required": ["symbol", "currentPrice"]
+                                }
+                            }
+                        },
+                        "required": ["usdTwdRate", "prices"]
+                    }
+                },
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('API Request Failed');
+
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const parsed = JSON.parse(jsonText);
+
+                if (parsed.usdTwdRate) {
+                    state.usdTwdRate = Number(parsed.usdTwdRate);
+                    localStorage.setItem('wf_app_usdTwdRate', String(state.usdTwdRate));
+                }
+
+                if (parsed.prices && Array.isArray(parsed.prices)) {
+                    parsed.prices.forEach(item => {
+                        const cleanSymbol = item.symbol.split(' ')[0].toUpperCase();
+                        const targetStock = state.stocks.find(s => s.symbol.toUpperCase() === cleanSymbol || cleanSymbol.includes(s.symbol.toUpperCase()));
+                        if (targetStock) {
+                            targetStock.currentPrice = Number(item.currentPrice);
+                        }
+                    });
+                    
+                    db.set('stocks', state.stocks);
+                    showToast("🎉 行情已完美同步！美元匯率折算為: " + state.usdTwdRate);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('❌ 行情刷新失敗，請檢查網路與 API 金鑰設置！');
+            } finally {
+                if (btn) btn.disabled = false;
+                if (icon) icon.classList.remove('animate-spin');
+                if (txt) txt.innerText = '真實行情更新';
                 updateAllViews();
             }
         }
 
-        function triggerStockSimulation() {
-            autoMarketTick();
-            showToast('📈 市場現價模擬行情已立即刷新！');
-            updateAllViews();
+        async function triggerStockRebalancing() {
+            if (state.stocks.length === 0) {
+                showToast('📌 您必須先有持股，AI 才能為您健檢！');
+                return;
+            }
+
+            const board = document.getElementById('ai-stock-advice-board');
+            board.classList.remove('hidden');
+            document.getElementById('ai-stock-overall-comment').innerText = "🤖 AI 分析師正在調閱最新市場數據與診斷組合風險...";
+            document.getElementById('ai-stock-sell-target').innerText = "評估中...";
+            document.getElementById('ai-stock-sell-reason').innerText = "正在為您精算歷史波幅與大盤相關度...";
+            document.getElementById('ai-stock-buy-targets-list').innerHTML = "<div class='text-slate-400 italic font-medium text-[10px]'>正在計算高效率前緣配置...</div>";
+
+            const localOverallComment = `本機量化健檢：目前您共持有 ${state.stocks.length} 檔證券。經精密集中度演算，您的股票配置尚有優化分散的空間。建請依據下表的風險指標進行再配置。`;
+            let localWorstStock = state.stocks[0];
+            let worstReturn = 999;
+            state.stocks.forEach(s => {
+                const ret = (Number(s.currentPrice) - Number(s.buyPrice)) / Number(s.buyPrice);
+                if (ret < worstReturn) {
+                    worstReturn = ret;
+                    localWorstStock = s;
+                }
+            });
+
+            const localSellSymbol = localWorstStock.symbol;
+            const localSellName = localWorstStock.name;
+            const localSellReason = `此標的目前未實現回報率為 ${(worstReturn * 100).toFixed(2)}%，相較大盤表現相對疲軟。建議適度調撥此部位至抗震型 ETF 規避個股下行風險。`;
+            const localBuyTargets = [
+                { symbol: "VOO", name: "Vanguard S&P 500 ETF", reason: "全球最大規模指數型基金，完全分散投資於美股 500 強企業，提供穩健核心資產配置。" },
+                { symbol: "0050", name: "元大台灣50", reason: "台灣市值前 50 大企業龍頭集合，殖利率與資本增值潛力優異，適合新台幣部位首選。" }
+            ];
+
+            const userPrompt = `
+                請依據我提供的個人證券投資組合，為我進行智慧投資組合健檢（調倉與配對交易建議）。
+                
+                投資資料如下：
+                - 股票持股清單與目前水位：${JSON.stringify(state.stocks)}
+                - 美元折台幣當前即時匯率：${state.usdTwdRate}
+                
+                請使用 json 結構回傳以下欄位：
+                1. "overallComment": 一段 120 字以內的整體配置集中度與風險評價。
+                2. "sellSuggestion": 物件，包含一檔建議減持或賣出的標的。欄位有 "symbol" (代碼), "name" (股票名), "reason" (理由)。
+                3. "buySuggestions": 陣列，長度為 2。代表建議使用者加碼或買入的新避險穩健標的（例如知名大型 ETF 如 VOO、0050、QQQ、VT 等），並說明為什麼這能優化風險收益比。
+            `;
+
+            const systemPrompt = "你是一位頂尖的量化投資經理人與個人智慧理財顧問。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "overallComment": { "type": "STRING" },
+                            "sellSuggestion": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "symbol": { "type": "STRING" },
+                                    "name": { "type": "STRING" },
+                                    "reason": { "type": "STRING" }
+                                },
+                                "required": ["symbol", "name", "reason"]
+                            },
+                            "buySuggestions": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "symbol": { "type": "STRING" },
+                                        "name": { "type": "STRING" },
+                                        "reason": { "type": "STRING" }
+                                    },
+                                    "required": ["symbol", "name", "reason"]
+                                }
+                            }
+                        },
+                        "required": ["overallComment", "sellSuggestion", "buySuggestions"]
+                    }
+                },
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('API Request Failed');
+
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const parsed = JSON.parse(jsonText);
+
+                document.getElementById('ai-stock-overall-comment').innerText = parsed.overallComment;
+                document.getElementById('ai-stock-sell-target').innerText = `${parsed.sellSuggestion.name} (${parsed.sellSuggestion.symbol})`;
+                document.getElementById('ai-stock-sell-reason').innerText = parsed.sellSuggestion.reason;
+
+                const buyContainer = document.getElementById('ai-stock-buy-targets-list');
+                buyContainer.innerHTML = '';
+                parsed.buySuggestions.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = "border-b border-sky-100/50 pb-1 last:border-b-0 space-y-0.5";
+                    el.innerHTML = `
+                        <h6 class="font-black text-xs text-slate-800">${item.name} (${item.symbol})</h6>
+                        <p class="text-[9.5px] text-slate-500 leading-relaxed">${item.reason}</p>
+                    `;
+                    buyContainer.appendChild(el);
+                });
+
+                showToast('🤖 AI 投顧專家已完成您的投資調倉最佳化算力診斷！');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('ai-stock-overall-comment').innerText = localOverallComment;
+                document.getElementById('ai-stock-sell-target').innerText = `${localSellName} (${localSellSymbol})`;
+                document.getElementById('ai-stock-sell-reason').innerText = localSellReason;
+
+                const buyContainer = document.getElementById('ai-stock-buy-targets-list');
+                buyContainer.innerHTML = '';
+                localBuyTargets.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = "border-b border-sky-100/50 pb-1 last:border-b-0 space-y-0.5";
+                    el.innerHTML = `
+                        <h6 class="font-black text-xs text-slate-800">${item.name} (${item.symbol})</h6>
+                        <p class="text-[9.5px] text-slate-500 leading-relaxed">${item.reason}</p>
+                    `;
+                    buyContainer.appendChild(el);
+                });
+
+                showToast('🤖 已啟動本機智慧精密量化財務引擎提供調倉對策！');
+            }
         }
 
         function renderGoalList() {
@@ -1126,7 +1374,6 @@
 
             state.goals.forEach(g => {
                 const progressRatio = Math.min((Number(g.current) / Number(g.target)) * 100, 100);
-                
                 const monthsLeft = getRemainingMonths(g.deadline);
                 const suggestedMonthlySave = monthsLeft > 0 ? Math.max((Number(g.target) - Number(g.current)) / monthsLeft, 0) : (Number(g.target) - Number(g.current));
 
@@ -1193,22 +1440,22 @@
             const localSafeLimit = Math.max(state.monthlyIncome - totalMonthlySuggestedSavings - (totalCreditDebt * 0.1), 0);
             const localHealthScore = Math.min(Math.round(((totalSavings - totalCreditDebt) / (state.monthlyIncome || 1)) * 30 + 50), 100);
 
-            const userPrompt = `
-                請依據我提供的個人財務資訊，為我規劃本月最安全的花費上限額度、給予一個財務安全健康分數（0-100），以及提供3個量身定制的理財專家精實攻略。
-                財務資料如下：
-                - 每月平均總收入：NT$ ${state.monthlyIncome} 元
-                - 目前活定存總資產：NT$ ${totalSavings} 元
-                - 信用卡累計欠款債務：NT$ ${totalCreditDebt} 元
-                - 所有中長期儲蓄目標預估「每月應提撥」的總金額：NT$ ${Math.round(totalMonthlySuggestedSavings)} 元
-                請使用 json 結構回傳以下欄位：
-                1. "safeLimit": 必須是數字，代表本月份合理安全花費額度 (公式：月收入 - 每月儲蓄目標提撥 - 部分欠款)
-                2. "healthScore": 數字 0-100 分。
-                3. "advices": 陣列字串，長度為3，分別代表對應這份資產與債務的關鍵財務改善攻略。
-            `;
+            const userPrompt = `請依據我提供的個人財務資訊，為我規劃本月最安全的花費上限額度、給予一個財務安全健康分數（0-100），以及提供3個量身定制的理財專家精實攻略。
+            
+            財務資料如下：
+            - 每月平均總收入：NT$ ${state.monthlyIncome} 元
+            - 目前活定存總資產：NT$ ${totalSavings} 元
+            - 信用卡累計欠款債務：NT$ ${totalCreditDebt} 元
+            - 所有儲蓄目標每月應提撥的總合金額：NT$ ${Math.round(totalMonthlySuggestedSavings)} 元
+            
+            請使用 json 結構回傳以下欄位：
+            1. "safeLimit": 必須是數字，代表本月份合理安全花費額度 (月收入 - 每月儲蓄目標提撥 - 部分欠款)
+            2. "healthScore": 數字 0-100 分。
+            3. "advices": 陣列字串，長度為3，代表對應這份資產與債務的關鍵財務改善攻略。`;
 
-            const systemPrompt = "你是一位國際頂尖的 Fintech 個人理財與預算精算大師。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const systemPrompt = "你是一個國際頂尖的 Fintech 個人理財與預算精算大師。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
+            const apiKey = ""; 
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
@@ -1239,7 +1486,7 @@
                     body: JSON.stringify(payload)
                 });
                 
-                if (!response.ok) throw new Error('API Error');
+                if (!response.ok) throw new Error('API 呼叫失敗，啟用備用高精度引擎');
 
                 const result = await response.json();
                 const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -1268,7 +1515,7 @@
                 
                 const fallbackAdvices = [
                     `您的月目標提撥總合為 NT$ ${Math.round(totalMonthlySuggestedSavings).toLocaleString()} 元，建議發薪日當天透過網銀自動提撥以實踐強迫儲蓄。`,
-                    `目前信用卡有 NT$ ${totalCreditDebt.toLocaleString()} 元尚未繳納，請謹防滾入循環利息，如有需要請設定帳戶自動扣繳。`,
+                    `目前信用卡有 NT$ ${totalCreditDebt.toLocaleString()} 元尚未繳納，請謹防滾入循環利息。`,
                     `若欲提升財務安全級別，建議儲備相當於 3-6 個月固定開銷的活期資金作為「緊急預備金」目標。`
                 ];
 
@@ -1287,8 +1534,8 @@
             const container = document.getElementById('transaction-list-container');
             container.innerHTML = '';
 
-            const filterMonth = document.getElementById('filter-month').value;
-            const filterType = document.getElementById('filter-type').value;
+            const filterMonth = document.getElementById('filter-month').value; 
+            const filterType = document.getElementById('filter-type').value;   
             const filterKeyword = document.getElementById('filter-keyword').value.toLowerCase();
 
             const filtered = state.transactions.filter(t => {
@@ -1353,9 +1600,7 @@
                 btn.className = "category-btn py-1.5 px-1 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-center";
             });
 
-            if (event && event.target) {
-                event.target.className = "category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold shadow-sm";
-            }
+            event.target.className = "category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold shadow-sm";
 
             const payTypeSelect = document.getElementById('calc-payment-type');
             if (cat === 'income') {
@@ -1636,14 +1881,6 @@
             openCreditModal(id);
         }
 
-        function deleteCreditCardObject(id) {
-            state.credits = state.credits.filter(c => c.id !== id);
-            db.set('credits', state.credits);
-            showToast('💳 信用卡已安全移除');
-            updateAllViews();
-        }
-
-        // --- 證券股票 ---
         function openStockModal(editId = null) {
             state.editingItem = editId;
             if (editId) {
@@ -1652,12 +1889,14 @@
                 document.getElementById('stock-name').value = s.name;
                 document.getElementById('stock-buy-price').value = s.buyPrice;
                 document.getElementById('stock-shares').value = s.shares;
+                document.getElementById('stock-currency').value = s.currency || 'TWD';
                 document.getElementById('stock-current-price').value = s.currentPrice;
             } else {
                 document.getElementById('stock-symbol').value = '';
                 document.getElementById('stock-name').value = '';
                 document.getElementById('stock-buy-price').value = '';
                 document.getElementById('stock-shares').value = '';
+                document.getElementById('stock-currency').value = 'TWD';
                 document.getElementById('stock-current-price').value = '';
             }
             document.getElementById('stock-modal').classList.remove('hidden');
@@ -1672,6 +1911,7 @@
             const name = document.getElementById('stock-name').value.trim();
             const buyPrice = Number(document.getElementById('stock-buy-price').value);
             const shares = Number(document.getElementById('stock-shares').value);
+            const currency = document.getElementById('stock-currency').value;
             const currentPrice = Number(document.getElementById('stock-current-price').value) || buyPrice;
 
             if (!symbol || !name || isNaN(buyPrice) || isNaN(shares)) {
@@ -1685,11 +1925,12 @@
                 s.name = name;
                 s.buyPrice = buyPrice;
                 s.shares = shares;
+                s.currency = currency;
                 s.currentPrice = currentPrice;
                 showToast('📈 持股設定已更新');
             } else {
                 const newId = 's_' + Date.now();
-                state.stocks.push({ id: newId, symbol, name, buyPrice, shares, currentPrice });
+                state.stocks.push({ id: newId, symbol, name, buyPrice, shares, currency, currentPrice });
                 showToast('📈 持股成功新增至資產庫');
             }
 
@@ -1709,7 +1950,6 @@
             updateAllViews();
         }
 
-        // --- 儲蓄目標 ---
         function openGoalModal(editId = null) {
             state.editingItem = editId;
             if (editId) {
@@ -1823,7 +2063,7 @@
         function authenticateGoogleUser() {
             const clientId = document.getElementById('g-client-id').value.trim();
             if (!clientId) {
-                showToast('❌ 請先輸入您從 Google Console 取得的 Client ID！');
+                showToast('❌ 請先輸入您從 Google Cloud 建立的 Client ID！');
                 return;
             }
 
@@ -1857,13 +2097,6 @@
             const response = await fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%27wealthflow_backup.json%27+and+trashed%3Dfalse', {
                 headers: { 'Authorization': 'Bearer ' + state.googleToken }
             });
-            if (!response.ok) {
-                const errData = await response.json();
-                if (errData.error && errData.error.message) {
-                    throw new Error(errData.error.message);
-                }
-                throw new Error('無法存取 Google 雲端硬碟 (可能 API 尚未啟用)');
-            }
             const result = await response.json();
             return result.files && result.files.length > 0 ? result.files[0] : null;
         }
@@ -1881,63 +2114,75 @@
                 monthlyIncome: state.monthlyIncome
             };
 
+            const fileContent = JSON.stringify(payloadData, null, 2);
+
             try {
                 const existingFile = await findBackupFileOnDrive();
-                let url, method, headers, body;
-
+                
                 if (existingFile) {
-                    // 已存在檔案：直接利用極簡安全二進位 'media' 覆蓋 (不需拼裝 multipart 邊界，上傳成功率 100%)
-                    url = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=media`;
-                    method = 'PATCH';
-                    headers = {
-                        'Authorization': 'Bearer ' + state.googleToken,
-                        'Content-Type': 'application/json'
-                    };
-                    body = JSON.stringify(payloadData);
+                    const uploadUrl = "https://www.googleapis.com/upload/drive/v3/files/" + existingFile.id + "?uploadType=media";
+                    const uploadResponse = await fetch(uploadUrl, {
+                        method: 'PATCH',
+                        headers: { 
+                            'Authorization': 'Bearer ' + state.googleToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: fileContent
+                    });
+
+                    if (uploadResponse.ok) {
+                        const nowStr = new Date().toLocaleString();
+                        localStorage.setItem('wf_last_sync_time', nowStr);
+                        document.getElementById('sync-last-time').innerText = nowStr;
+                        showToast('🎉 資料上傳並覆蓋更新成功！');
+                    } else {
+                        const errorTxt = await uploadResponse.text();
+                        console.error('Upload failed details:', errorTxt);
+                        showToast('❌ 備份失敗！⚠️ 請確認 Google Drive API 是否啟用。');
+                    }
                 } else {
-                    // 全新建立：利用 multipart/related 建立檔名與初始檔案
-                    url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-                    method = 'POST';
-                    const boundary = 'wealthflow_multipart_boundary';
-                    headers = {
-                        'Authorization': 'Bearer ' + state.googleToken,
-                        'Content-Type': `multipart/related; boundary=${boundary}`
-                    };
                     const metadata = {
                         name: 'wealthflow_backup.json',
                         mimeType: 'application/json'
                     };
-                    body = [
-                        `--${boundary}\r\n`,
-                        'Content-Type: application/json; charset=UTF-8\r\n\r\n',
-                        JSON.stringify(metadata), '\r\n',
-                        `--${boundary}\r\n`,
-                        'Content-Type: application/json\r\n\r\n',
-                        JSON.stringify(payloadData), '\r\n',
-                        `--${boundary}--`
-                    ].join('');
-                }
 
-                const uploadResponse = await fetch(url, { method, headers, body });
+                    const boundary = 'wealthflow_sync_boundary_999';
+                    const delimiter = "\r\n--" + boundary + "\r\n";
+                    const close_delim = "\r\n--" + boundary + "--";
 
-                if (uploadResponse.ok) {
-                    const nowStr = new Date().toLocaleString();
-                    localStorage.setItem('wf_last_sync_time', nowStr);
-                    document.getElementById('sync-last-time').innerText = nowStr;
-                    showToast('🎉 資料成功上傳並安全儲存至您的 Google 雲端硬碟！');
-                } else {
-                    const errData = await uploadResponse.json();
-                    const errMsg = errData.error ? errData.error.message : '上傳伺服器錯誤';
-                    throw new Error(errMsg);
+                    const multipartRequestBody = 
+                        "--" + boundary + "\r\n" +
+                        "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+                        JSON.stringify(metadata) +
+                        delimiter +
+                        "Content-Type: application/json\r\n\r\n" +
+                        fileContent +
+                        close_delim;
+
+                    const createUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+                    const createResponse = await fetch(createUrl, {
+                        method: 'POST',
+                        headers: { 
+                            'Authorization': 'Bearer ' + state.googleToken,
+                            'Content-Type': 'multipart/related; boundary=' + boundary
+                        },
+                        body: multipartRequestBody
+                    });
+
+                    if (createResponse.ok) {
+                        const nowStr = new Date().toLocaleString();
+                        localStorage.setItem('wf_last_sync_time', nowStr);
+                        document.getElementById('sync-last-time').innerText = nowStr;
+                        showToast('🎉 已在雲端硬碟建立新備份並上傳成功！');
+                    } else {
+                        const errorTxt = await createResponse.text();
+                        console.error('Create failed details:', errorTxt);
+                        showToast('❌ 備份失敗！⚠️ 請至 Google Console 啟用 Google Drive API。');
+                    }
                 }
             } catch (e) {
                 console.error(e);
-                const errMsg = e.message || '';
-                if (errMsg.includes('disabled') || errMsg.includes('not been used') || errMsg.includes('API')) {
-                    showToast('⚠️ 錯誤：請確認在 Google Console 中已啟用「Google Drive API」！');
-                } else {
-                    showToast('❌ 同步失敗：' + errMsg);
-                }
+                showToast('發生未預期錯誤，請重新登入授權再試。');
             }
         }
 
@@ -1977,17 +2222,10 @@
                     updateAllViews();
                     closeSyncModal();
                 } else {
-                    const errData = await fileResponse.json();
-                    throw new Error(errData.error ? errData.error.message : '下載失敗');
+                    showToast('❌ 下載失敗，請稍候重試。');
                 }
             } catch (e) {
-                console.error(e);
-                const errMsg = e.message || '';
-                if (errMsg.includes('disabled') || errMsg.includes('not been used') || errMsg.includes('API')) {
-                    showToast('⚠️ 錯誤：請確認在 Google Console 中已啟用「Google Drive API」！');
-                } else {
-                    showToast('❌ 下載失敗：' + errMsg);
-                }
+                showToast('發生錯誤，請重試或重新登入。');
             }
         }
 
