@@ -271,7 +271,7 @@
                         </div>
 
                         <div class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                            <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wider mb-1">💼 投資組合綜評</span>
+                            <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wider mb-1">💼 投資組合综評</span>
                             <p id="ai-stock-overall-comment" class="font-medium text-slate-700">正在評估持股分佈與集中度...</p>
                         </div>
 
@@ -304,7 +304,7 @@
                     </div>
 
                     <p class="text-[9px] text-slate-400 text-center italic mt-2">
-                        *提示：系統將整合 Gemini 搭配 Google 搜尋網路，一鍵精準查出全球最新收盤與即時市價，並折合匯率。
+                        *提示：系統將直接與金融伺服器對接，一鍵精準抓出全球最新收盤與即時市價，並折合匯率。
                     </p>
                 </div>
             </section>
@@ -511,7 +511,7 @@
                     <!-- Gemini API Key 整合 -->
                     <div class="p-3.5 bg-sky-50/50 border border-sky-100 rounded-2xl space-y-2">
                         <div class="flex justify-between items-center">
-                            <label class="block text-[10px] text-slate-500 font-black">🤖 Gemini AI 專屬金鑰 (行情與規劃用)</label>
+                            <label class="block text-[10px] text-slate-500 font-black">🤖 Gemini AI 專屬金鑰 (僅用於AI調倉攻略)</label>
                             <a href="https://aistudio.google.com/" target="_blank" class="text-[9px] text-theme-darkblue hover:underline font-bold">10秒免費申請 🔗</a>
                         </div>
                         <input type="password" id="gemini-api-key" placeholder="貼上您的 Gemini API Key (如 AQ...)..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] text-slate-600 focus:outline-none focus:border-theme-darkblue">
@@ -726,6 +726,7 @@
 
     </div>
 
+    <!-- JavaScript 核心邏輯 -->
     <script>
         const db = {
             get: (key, defaultValue) => {
@@ -933,7 +934,115 @@
             renderTransactions();
         }
 
-        // 核心強固 API 連線函數
+        function formatSymbolForYahoo(symbol) {
+            symbol = symbol.trim().toUpperCase();
+            // 如果輸入純數字，自動判定為台股並補上 .TW (如 2330 -> 2330.TW)
+            if (/^\d+$/.test(symbol)) {
+                return symbol + ".TW";
+            }
+            return symbol;
+        }
+
+        async function fetchDirectStockPrice(symbol) {
+            const formatted = formatSymbolForYahoo(symbol);
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${formatted}`;
+            
+            try {
+                // 優先使用可靠的 api.allorigins.win 作為 CORS 代理
+                const proxyUrl1 = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const res = await fetch(proxyUrl1);
+                if (res.ok) {
+                    const json = await res.json();
+                    const data = JSON.parse(json.contents);
+                    if (data.chart?.result?.[0]) {
+                        const meta = data.chart.result[0].meta;
+                        return {
+                            price: meta.regularMarketPrice,
+                            currency: meta.currency, // 如 'TWD', 'USD' 等
+                            previousClose: meta.chartPreviousClose
+                        };
+                    }
+                }
+            } catch (e) {
+                console.warn("Proxy 1 (allorigins) failed, trying fallback...", e);
+            }
+            
+            // 備用代理：corsproxy.io
+            const proxyUrl2 = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
+            const res = await fetch(proxyUrl2);
+            if (!res.ok) throw new Error("直連金融伺服器失敗，請確認網路或標的代码是否正確。");
+            const data = await res.json();
+            if (data.chart?.result?.[0]) {
+                const meta = data.chart.result[0].meta;
+                return {
+                    price: meta.regularMarketPrice,
+                    currency: meta.currency,
+                    previousClose: meta.chartPreviousClose
+                };
+            }
+            throw new Error("無法解析報價。");
+        }
+
+        async function fetchDirectExchangeRate() {
+            try {
+                // 抓取 Yahoo USDTWD=X 最新外匯
+                const rateData = await fetchDirectStockPrice("USDTWD=X");
+                return rateData.price || 32.5;
+            } catch (e) {
+                console.error("無法更新即時美元匯率，使用備用固定值", e);
+                return 32.5;
+            }
+        }
+
+        async function fetchRealStockPrices() {
+            if (state.stocks.length === 0) {
+                showToast('📌 持股清單中無任何股票，請先點擊「新增持股」！');
+                return;
+            }
+
+            const btn = document.getElementById('btn-stock-update');
+            const icon = document.getElementById('stock-update-icon');
+            const txt = document.getElementById('stock-update-text');
+            
+            if (btn) btn.disabled = true;
+            if (icon) icon.classList.add('animate-spin');
+            if (txt) txt.innerText = '正在獲取真實行情...';
+
+            try {
+                // 1. 直連抓取美元匯率
+                const usdRate = await fetchDirectExchangeRate();
+                state.usdTwdRate = usdRate;
+                localStorage.setItem('wf_app_usdTwdRate', String(state.usdTwdRate));
+
+                // 2. 平行直連抓取所有股票現價 (不經過AI，秒級回傳)
+                let successCount = 0;
+                await Promise.all(state.stocks.map(async (s) => {
+                    try {
+                        const stockData = await fetchDirectStockPrice(s.symbol);
+                        s.currentPrice = stockData.price;
+                        // 自動修正幣別對齊
+                        if (stockData.currency) {
+                            s.currency = stockData.currency === "TWD" ? "TWD" : (stockData.currency === "USD" ? "USD" : s.currency);
+                        }
+                        successCount++;
+                    } catch (err) {
+                        console.error(`無法獲取代號 ${s.symbol} 的真實現價:`, err);
+                    }
+                }));
+
+                db.set('stocks', state.stocks);
+                showToast(`🎉 行情秒級更新成功！共更新 ${successCount} 檔。美元匯率：${state.usdTwdRate.toFixed(2)}`);
+            } catch (err) {
+                console.error(err);
+                showToast('❌ 行情更新失敗，請確認代碼或網路正常！');
+            } finally {
+                if (btn) btn.disabled = false;
+                if (icon) icon.classList.remove('animate-spin');
+                if (txt) txt.innerText = '真實行情更新';
+                updateAllViews();
+            }
+        }
+
         async function callGeminiAPI(prompt, systemInstruction = "", useSearch = false, jsonSchema = null) {
             const apiKey = state.geminiApiKey;
             if (!apiKey) {
@@ -954,18 +1063,8 @@
                     const result = await fetchWithModel(model, apiKey, prompt, systemInstruction, useSearch, jsonSchema);
                     return result;
                 } catch (err) {
-                    console.warn(`模型 ${model} (搜尋: ${useSearch}) 失敗:`, err);
+                    console.warn(`模型 ${model} 失敗:`, err);
                     lastError = err;
-
-                    if (useSearch) {
-                        try {
-                            const result = await fetchWithModel(model, apiKey, prompt, systemInstruction, false, jsonSchema);
-                            return result;
-                        } catch (errNoSearch) {
-                            console.warn(`模型 ${model} (無搜尋) 亦失敗:`, errNoSearch);
-                            lastError = errNoSearch;
-                        }
-                    }
                 }
             }
 
@@ -983,10 +1082,6 @@
                 payload.systemInstruction = {
                     parts: [{ text: systemInstruction }]
                 };
-            }
-
-            if (useSearch) {
-                payload.tools = [{ "google_search": {} }];
             }
 
             if (jsonSchema) {
@@ -1235,94 +1330,6 @@
             });
         }
 
-        async function fetchRealStockPrices() {
-            if (state.stocks.length === 0) {
-                showToast('📌 持股清單中無任何股票，請先點擊「新增持股」！');
-                return;
-            }
-
-            if (!state.geminiApiKey) {
-                showToast('⚠️ 請先點選頂部「同步設定」設定您的 Gemini API 金鑰！');
-                openSyncModal();
-                return;
-            }
-
-            const btn = document.getElementById('btn-stock-update');
-            const icon = document.getElementById('stock-update-icon');
-            const txt = document.getElementById('stock-update-text');
-            
-            if (btn) btn.disabled = true;
-            if (icon) icon.classList.add('animate-spin');
-            if (txt) txt.innerText = '正在獲取真實行情...';
-
-            const symbolsInfo = state.stocks.map(s => {
-                const curr = s.currency || 'TWD';
-                return s.symbol + ' (名稱:' + s.name + ', 幣別:' + curr + ')';
-            });
-            
-            const systemPrompt = `You are a high-fidelity real-time financial market data crawler.
-Your primary directive is to use your Google Search tool to find the absolute latest closing price or real-time price on Google Finance, Yahoo Finance, or the Taiwan Stock Exchange (TWSE).
-For Taiwanese stocks (usually 4 to 5 digit numbers like 2330, 00893, etc.), search specifically for their prices in New Taiwan Dollars (TWD).
-For US stocks (letters like AAPL, TSLA), search for their prices in USD.
-Also, find the exact current US Dollar to New Taiwan Dollar (USD to TWD) exchange rate.
-You MUST output the result strictly matching the provided JSON schema. No surrounding markdown except the json output itself. Do not make up fake prices.`;
-
-            const userPrompt = `請用你的 Google 搜尋工具，精確找出以下股票最新的一個交易日收盤價或當前即時價：
-股票清單：[${symbolsInfo.join(', ')}]
-
-請也搜尋並回傳當前最準確的「美元兌新台幣 (USD to TWD) 即時匯率」 (例如 32.58)。
-請將資料解析為乾淨的 JSON 回傳。`;
-
-            const jsonSchema = {
-                type: "OBJECT",
-                properties: {
-                    "usdTwdRate": { "type": "NUMBER", "description": "當前最新美元兌新台幣即時匯率，必須是真實搜尋到的浮點數，如 32.55" },
-                    "prices": {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                "symbol": { "type": "STRING", "description": "股票代碼 (必須完全對應我給你的代碼如 00893 或 AAPL)" },
-                                "currentPrice": { "type": "NUMBER", "description": "搜尋到的最新真實市場成交單股價格 (台股回傳台幣，美股回傳美金)" }
-                            },
-                            "required": ["symbol", "currentPrice"]
-                        }
-                    }
-                },
-                "required": ["usdTwdRate", "prices"]
-            };
-
-            try {
-                const parsed = await callGeminiAPI(userPrompt, systemPrompt, true, jsonSchema);
-
-                if (parsed.usdTwdRate) {
-                    state.usdTwdRate = Number(parsed.usdTwdRate);
-                    localStorage.setItem('wf_app_usdTwdRate', String(state.usdTwdRate));
-                }
-
-                if (parsed.prices && Array.isArray(parsed.prices)) {
-                    parsed.prices.forEach(item => {
-                        const cleanSymbol = item.symbol.trim().toUpperCase();
-                        const targetStock = state.stocks.find(s => s.symbol.toUpperCase() === cleanSymbol || cleanSymbol.includes(s.symbol.toUpperCase()) || s.symbol.toUpperCase().includes(cleanSymbol));
-                        if (targetStock) {
-                            targetStock.currentPrice = Number(item.currentPrice);
-                        }
-                    });
-                    
-                    db.set('stocks', state.stocks);
-                    showToast("🎉 真實行情已完美同步！美元匯率折算為: " + state.usdTwdRate);
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('❌ 行情刷新失敗，請確認金鑰權限或網路狀態！');
-            } finally {
-                if (btn) btn.disabled = false;
-                if (icon) icon.classList.remove('animate-spin');
-                if (txt) txt.innerText = '真實行情更新';
-                updateAllViews();
-            }
-        }
-
         async function triggerStockRebalancing() {
             if (state.stocks.length === 0) {
                 showToast('📌 您必須先有持股，AI 才能為您健檢！');
@@ -1416,10 +1423,8 @@ You MUST output the result strictly matching the provided JSON schema. No surrou
             try {
                 const parsed = await callGeminiAPI(userPrompt, systemPrompt, false, jsonSchema);
 
-                // 填入綜合評論
                 document.getElementById('ai-stock-overall-comment').innerText = parsed.overallComment;
                 
-                // 渲染賣出建議 (帶有長短期標章與精確目標/停損價)
                 const sellObj = parsed.sellSuggestion;
                 document.getElementById('ai-stock-sell-target').innerHTML = `
                     <div class="flex justify-between items-center w-full">
@@ -1441,7 +1446,6 @@ You MUST output the result strictly matching the provided JSON schema. No surrou
                     <p class="text-[9.5px] text-slate-500 leading-relaxed mt-1">${sellObj.reason}</p>
                 `;
 
-                // 渲染買入建議 (帶有買入、賣出、停損三欄位對照)
                 const buyContainer = document.getElementById('ai-stock-buy-targets-list');
                 buyContainer.innerHTML = '';
                 parsed.buySuggestions.forEach(item => {
@@ -1580,7 +1584,7 @@ You MUST output the result strictly matching the provided JSON schema. No surrou
                 3. "advices": 陣列字串，長度為3，代表精確的 CFP 特許財務分析建議。
             `;
 
-            const systemPrompt = "You are a highly-experienced Certified Financial Planner (CFP). Your planning suggestions are mathematically precise, highly actionable, and tailored to build real wealth. You must output strictly valid JSON conforming to the schema.";
+            const systemPrompt = "You are a highly-experienced Certified Financial Planner (CFP). Your planning recommendations are mathematically precise, highly actionable, and tailored to build real wealth. You must output strictly valid JSON conforming to the schema.";
             
             const jsonSchema = {
                 type: "OBJECT",
@@ -2314,7 +2318,7 @@ You MUST output the result strictly matching the provided JSON schema. No surrou
                     showToast('❌ 下載失敗，請稍候重試。');
                 }
             } catch (e) {
-                showToast('發生錯誤，請重試或重新登入。');
+                showToast('發生錯誤，請重試 or 重新登入。');
             }
         }
 
@@ -2402,3 +2406,5 @@ You MUST output the result strictly matching the provided JSON schema. No surrou
     </script>
 </body>
 </html>
+```
+eof
