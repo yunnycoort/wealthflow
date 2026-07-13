@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WealthFlow 豐記帳 - 馬卡龍粉藍手機版</title>
     
-    <!-- PWA 行動全螢幕規格配置 -->
+    <!-- PWA 全螢幕關鍵設定 -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <!-- Tailwind CSS 輕量馬卡龍粉藍自訂設定 -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -37,10 +37,9 @@
     </script>
     <!-- FontAwesome 圖標庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google GIS 認證服務 -->
+    <!-- Google GIS (Google 認證服務) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* 隱藏手機原生滾動條 */
         ::-webkit-scrollbar {
             display: none;
         }
@@ -85,7 +84,7 @@
         </div>
     </div>
 
-    <!-- 行動裝置外殼：在桌面端呈現為手機樣式，在手機端滿版呈現 -->
+    <!-- 行動裝置外殼 -->
     <div class="w-full max-w-md h-full bg-white flex flex-col relative overflow-hidden shadow-2xl border-x border-slate-100">
         
         <!-- App 頂部 Header -->
@@ -181,7 +180,7 @@
                     </button>
                     <button onclick="switchTab('tab-goals')" class="flex flex-col items-center gap-1 text-slate-600 hover:text-theme-darkblue transition-colors">
                         <span class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-sm">🎯</span>
-                        <span class="text-[10px] font-bold">目標目標</span>
+                        <span class="text-[10px] font-bold">目標規劃</span>
                     </button>
                     <button onclick="exportDataToCSV()" class="flex flex-col items-center gap-1 text-slate-600 hover:text-theme-darkblue transition-colors">
                         <span class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-sm">📊</span>
@@ -941,7 +940,6 @@
                 throw new Error("請先設定 Gemini API 金鑰！");
             }
 
-            // 要嘗試的模型，按優先順序
             const modelsToTry = [
                 'gemini-3.5-flash',
                 'gemini-2.5-flash',
@@ -951,17 +949,14 @@
 
             let lastError = null;
 
-            // 輪詢嘗試模型
             for (const model of modelsToTry) {
                 try {
-                    // 首先嘗試有搜尋/無搜尋（依參數）
                     const result = await fetchWithModel(model, apiKey, prompt, systemInstruction, useSearch, jsonSchema);
                     return result;
                 } catch (err) {
                     console.warn(`模型 ${model} (搜尋: ${useSearch}) 失敗:`, err);
                     lastError = err;
 
-                    // 如果是 Google 搜尋工具在免費版出錯，立刻退回到無搜尋模式
                     if (useSearch) {
                         try {
                             const result = await fetchWithModel(model, apiKey, prompt, systemInstruction, false, jsonSchema);
@@ -977,9 +972,7 @@
             throw lastError || new Error("所有 Gemini 模型連線皆失敗，請確認金鑰權限與網路環境！");
         }
 
-        // 強健的單次 Fetch 函數
         async function fetchWithModel(model, apiKey, prompt, systemInstruction, useSearch, jsonSchema) {
-            // 新版與舊版金鑰，皆使用最安全的 query parameter 連線模式，完全規避手機 CORS Preflight 攔截
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -1025,12 +1018,10 @@
             return parseRobustJSON(jsonText);
         }
 
-        // 安全清理並解析 JSON 格式
         function parseRobustJSON(text) {
             try {
                 return JSON.parse(text);
             } catch (e) {
-                // 如果回傳值夾雜了 Markdown 的 ```json ... ```，先進行修剪
                 let cleanText = text.trim();
                 if (cleanText.startsWith("```")) {
                     cleanText = cleanText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
@@ -1266,23 +1257,33 @@
 
             const symbolsInfo = state.stocks.map(s => {
                 const curr = s.currency || 'TWD';
-                return s.symbol + '（幣別:' + curr + '）';
+                return s.symbol + ' (名稱:' + s.name + ', 幣別:' + curr + ')';
             });
             
-            const systemPrompt = "你是一個高精度的全球金融市場行情數據 API。你必須尋找正確的即時/最新延遲收盤股價與匯率。一律只回覆符合 JSON Schema 的規格，不要有額外的 Markdown 標記或引號。";
-            const userPrompt = "請幫我查詢以下股票與匯率的最新市場報價（美股查最新收盤價或盤中即時價，台股查台灣證券交易所最新成交價）：\n股票清單：[" + symbolsInfo.join(', ') + "]\n\n請回傳：\n1. 每一檔股票的最新每股市價（精確的浮點數，必須符合其計價幣別，如 TWD 查台幣價格，USD 查美金價格）。\n2. 美元兌新台幣（USD to TWD）的最新即時匯率（例如：32.65）。\n\n請一律以 JSON 物件回傳。";
+            const systemPrompt = `You are a high-fidelity real-time financial market data crawler.
+Your primary directive is to use your Google Search tool to find the absolute latest closing price or real-time price on Google Finance, Yahoo Finance, or the Taiwan Stock Exchange (TWSE).
+For Taiwanese stocks (usually 4 to 5 digit numbers like 2330, 00893, etc.), search specifically for their prices in New Taiwan Dollars (TWD).
+For US stocks (letters like AAPL, TSLA), search for their prices in USD.
+Also, find the exact current US Dollar to New Taiwan Dollar (USD to TWD) exchange rate.
+You MUST output the result strictly matching the provided JSON schema. No surrounding markdown except the json output itself. Do not make up fake prices.`;
+
+            const userPrompt = `請用你的 Google 搜尋工具，精確找出以下股票最新的一個交易日收盤價或當前即時價：
+股票清單：[${symbolsInfo.join(', ')}]
+
+請也搜尋並回傳當前最準確的「美元兌新台幣 (USD to TWD) 即時匯率」 (例如 32.58)。
+請將資料解析為乾淨的 JSON 回傳。`;
 
             const jsonSchema = {
                 type: "OBJECT",
                 properties: {
-                    "usdTwdRate": { "type": "NUMBER", "description": "當前最新美元兌新台幣匯率" },
+                    "usdTwdRate": { "type": "NUMBER", "description": "當前最新美元兌新台幣即時匯率，必須是真實搜尋到的浮點數，如 32.55" },
                     "prices": {
                         type: "ARRAY",
                         items: {
                             type: "OBJECT",
                             properties: {
-                                "symbol": { "type": "STRING", "description": "股票代碼 (英文大寫)" },
-                                "currentPrice": { "type": "NUMBER", "description": "最新股票市場單股成交價" }
+                                "symbol": { "type": "STRING", "description": "股票代碼 (必須完全對應我給你的代碼如 00893 或 AAPL)" },
+                                "currentPrice": { "type": "NUMBER", "description": "搜尋到的最新真實市場成交單股價格 (台股回傳台幣，美股回傳美金)" }
                             },
                             "required": ["symbol", "currentPrice"]
                         }
@@ -1292,7 +1293,6 @@
             };
 
             try {
-                // 使用強固 API 核心
                 const parsed = await callGeminiAPI(userPrompt, systemPrompt, true, jsonSchema);
 
                 if (parsed.usdTwdRate) {
@@ -1302,15 +1302,15 @@
 
                 if (parsed.prices && Array.isArray(parsed.prices)) {
                     parsed.prices.forEach(item => {
-                        const cleanSymbol = item.symbol.split(' ')[0].toUpperCase();
-                        const targetStock = state.stocks.find(s => s.symbol.toUpperCase() === cleanSymbol || cleanSymbol.includes(s.symbol.toUpperCase()));
+                        const cleanSymbol = item.symbol.trim().toUpperCase();
+                        const targetStock = state.stocks.find(s => s.symbol.toUpperCase() === cleanSymbol || cleanSymbol.includes(s.symbol.toUpperCase()) || s.symbol.toUpperCase().includes(cleanSymbol));
                         if (targetStock) {
                             targetStock.currentPrice = Number(item.currentPrice);
                         }
                     });
                     
                     db.set('stocks', state.stocks);
-                    showToast("🎉 行情已完美同步！美元匯率折算為: " + state.usdTwdRate);
+                    showToast("🎉 真實行情已完美同步！美元匯率折算為: " + state.usdTwdRate);
                 }
             } catch (err) {
                 console.error(err);
@@ -1337,25 +1337,45 @@
 
             const board = document.getElementById('ai-stock-advice-board');
             board.classList.remove('hidden');
-            document.getElementById('ai-stock-overall-comment').innerText = "🤖 AI 分析師正在調閱最新市場數據與診斷組合風險...";
-            document.getElementById('ai-stock-sell-target').innerText = "評估中...";
-            document.getElementById('ai-stock-sell-reason').innerText = "正在為您精算歷史波幅與大盤相關度...";
-            document.getElementById('ai-stock-buy-targets-list').innerHTML = "<div class='text-slate-400 italic font-medium text-[10px]'>正在計算高效率前緣配置...</div>";
+            document.getElementById('ai-stock-overall-comment').innerText = "🤖 AI 投資分析師正在分析您的持股比重、並幫您規劃各標的的長短期投資策略與目標賣出/停損價格...";
+            document.getElementById('ai-stock-sell-target').innerText = "精算中...";
+            document.getElementById('ai-stock-sell-reason').innerText = "正在精確診斷板塊集中度與各檔標的之停利、停損執行點...";
+            document.getElementById('ai-stock-buy-targets-list').innerHTML = "<div class='text-slate-400 italic font-medium text-[10px]'>正在為您尋找互補資產並精算建議買入/賣出價位...</div>";
 
             const userPrompt = `
-                請依據我提供的個人證券投資組合，為我進行智慧投資組合健檢（調倉與配對交易建議）。
+                請依據我提供的個人證券投資組合，為我進行【專業量化基金經理人級】的投資組合健檢與具體的調倉建議。
                 
                 投資資料如下：
                 - 股票持股清單與目前水位：${JSON.stringify(state.stocks)}
                 - 美元折台幣當前即時匯率：${state.usdTwdRate}
                 
+                請分析並提供以下具體戰術規劃：
+                1. 行業分佈與集中風險診斷。
+                2. 針對一檔最建議調節（賣出/減持）的現有持股：
+                   - 明確指出它是「長期投資」還是「短期波段」推薦。
+                   - 提供精確的「建議目標賣出價/停利點 (Target Exit Price)」與「避險防守停損價 (Stop Loss Price)」。
+                3. 提供 2 檔建議新買入或加碼的互補/防禦型標的：
+                   - 明確標示這兩檔標的各是推薦做為「長期投資」還是「短期波段」。
+                   - 為每一檔提供具體的「建議買入區間 (Entry Range)」、「目標賣出價/停利點 (Target Exit Price)」與「避險停損價 (Stop Loss Price)」。
+                
                 請使用 json 結構回傳以下欄位：
-                1. "overallComment": 一段 120 字以內的整體配置集中度與風險評價。
-                2. "sellSuggestion": 物件，包含一檔建議減持或賣出的標的。欄位有 "symbol" (代碼), "name" (股票名), "reason" (理由)。
-                3. "buySuggestions": 陣列，長度為 2。代表建議使用者加碼或買入的新避險穩健標的（例如知名大型 ETF 如 VOO、0050、QQQ、VT 等），並說明為什麼這能優化風險收益比。
+                1. "overallComment": 量化板塊集中度診斷與 2026 最新總經趨勢簡評。
+                2. "sellSuggestion": 物件，包含建議調節的標的。
+                   - "symbol", "name"
+                   - "horizon": 請寫 "長期投資" 或 "短期波段"
+                   - "targetExitPrice": 精確賣出/停利目標價格 (例: NT$ 360 或 $195)
+                   - "stopLossPrice": 建議防守停損點 (例: NT$ 310 或 $165)
+                   - "reason": 量化理由
+                3. "buySuggestions": 陣列，長度為 2。
+                   - "symbol", "name"
+                   - "horizon": 請寫 "長期投資" 或 "短期波段"
+                   - "suggestedEntryRange": 建議買入價格區間 (例: NT$ 580-590)
+                   - "targetExitPrice": 目標賣出價格 (例: NT$ 650)
+                   - "stopLossPrice": 避險停損點 (例: NT$ 550)
+                   - "reason": 對沖或互補理由
             `;
 
-            const systemPrompt = "你世紀頂尖的量化投資經理人與個人智慧理財顧問。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
+            const systemPrompt = "You are a professional quantitative portfolio manager. Your recommendations include clear investment horizons (short/long-term), precise entry/exit targets, and defensive stop-loss values. You must output strictly valid JSON conforming to the schema.";
             
             const jsonSchema = {
                 type: "OBJECT",
@@ -1366,9 +1386,12 @@
                         "properties": {
                             "symbol": { "type": "STRING" },
                             "name": { "type": "STRING" },
+                            "horizon": { "type": "STRING" },
+                            "targetExitPrice": { "type": "STRING" },
+                            "stopLossPrice": { "type": "STRING" },
                             "reason": { "type": "STRING" }
                         },
-                        "required": ["symbol", "name", "reason"]
+                        "required": ["symbol", "name", "horizon", "targetExitPrice", "stopLossPrice", "reason"]
                     },
                     "buySuggestions": {
                         "type": "ARRAY",
@@ -1377,9 +1400,13 @@
                             "properties": {
                                 "symbol": { "type": "STRING" },
                                 "name": { "type": "STRING" },
+                                "horizon": { "type": "STRING" },
+                                "suggestedEntryRange": { "type": "STRING" },
+                                "targetExitPrice": { "type": "STRING" },
+                                "stopLossPrice": { "type": "STRING" },
                                 "reason": { "type": "STRING" }
                             },
-                            "required": ["symbol", "name", "reason"]
+                            "required": ["symbol", "name", "horizon", "suggestedEntryRange", "targetExitPrice", "stopLossPrice", "reason"]
                         }
                     }
                 },
@@ -1387,26 +1414,64 @@
             };
 
             try {
-                // 使用強固 API 核心
                 const parsed = await callGeminiAPI(userPrompt, systemPrompt, false, jsonSchema);
 
+                // 填入綜合評論
                 document.getElementById('ai-stock-overall-comment').innerText = parsed.overallComment;
-                document.getElementById('ai-stock-sell-target').innerText = `${parsed.sellSuggestion.name} (${parsed.sellSuggestion.symbol})`;
-                document.getElementById('ai-stock-sell-reason').innerText = parsed.sellSuggestion.reason;
+                
+                // 渲染賣出建議 (帶有長短期標章與精確目標/停損價)
+                const sellObj = parsed.sellSuggestion;
+                document.getElementById('ai-stock-sell-target').innerHTML = `
+                    <div class="flex justify-between items-center w-full">
+                        <span>${sellObj.name} (${sellObj.symbol})</span>
+                        <span class="text-[8px] bg-rose-200 text-rose-800 font-extrabold px-1.5 py-0.5 rounded-full">${sellObj.horizon}</span>
+                    </div>
+                `;
+                document.getElementById('ai-stock-sell-reason').innerHTML = `
+                    <div class="my-2 grid grid-cols-2 gap-2 text-[9px] font-bold">
+                        <div class="p-1.5 bg-emerald-100/60 text-emerald-800 rounded-xl border border-emerald-200 flex flex-col items-center">
+                            <span>🎯 建議停利賣出價</span>
+                            <span class="text-xs font-black mt-0.5">${sellObj.targetExitPrice}</span>
+                        </div>
+                        <div class="p-1.5 bg-rose-100/60 text-rose-800 rounded-xl border border-rose-200 flex flex-col items-center">
+                            <span>🛑 避險防守停損價</span>
+                            <span class="text-xs font-black mt-0.5">${sellObj.stopLossPrice}</span>
+                        </div>
+                    </div>
+                    <p class="text-[9.5px] text-slate-500 leading-relaxed mt-1">${sellObj.reason}</p>
+                `;
 
+                // 渲染買入建議 (帶有買入、賣出、停損三欄位對照)
                 const buyContainer = document.getElementById('ai-stock-buy-targets-list');
                 buyContainer.innerHTML = '';
                 parsed.buySuggestions.forEach(item => {
                     const el = document.createElement('div');
-                    el.className = "border-b border-sky-100/50 pb-1 last:border-b-0 space-y-0.5";
+                    el.className = "border-b border-sky-100/40 pb-2 last:border-b-0 space-y-1.5";
                     el.innerHTML = `
-                        <h6 class="font-black text-xs text-slate-800">${item.name} (${item.symbol})</h6>
+                        <div class="flex justify-between items-center pt-1.5">
+                            <h6 class="font-black text-xs text-slate-800">${item.name} (${item.symbol})</h6>
+                            <span class="text-[8px] bg-sky-200 text-sky-800 font-extrabold px-1.5 py-0.5 rounded-full">${item.horizon}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5 text-[8.5px] font-bold text-center">
+                            <div class="p-1 bg-slate-100 text-slate-700 rounded-lg">
+                                <span class="block text-[7.5px] text-slate-400">📥 買入區間</span>
+                                <span class="text-[9.5px] font-black">${item.suggestedEntryRange}</span>
+                            </div>
+                            <div class="p-1 bg-emerald-50 text-emerald-800 rounded-lg">
+                                <span class="block text-[7.5px] text-emerald-400">🎯 目標停利</span>
+                                <span class="text-[9.5px] font-black text-emerald-700">${item.targetExitPrice}</span>
+                            </div>
+                            <div class="p-1 bg-rose-50 text-rose-800 rounded-lg">
+                                <span class="block text-[7.5px] text-rose-400">🛑 避險停損</span>
+                                <span class="text-[9.5px] font-black text-rose-700">${item.stopLossPrice}</span>
+                            </div>
+                        </div>
                         <p class="text-[9.5px] text-slate-500 leading-relaxed">${item.reason}</p>
                     `;
                     buyContainer.appendChild(el);
                 });
 
-                showToast('🤖 AI 投顧專家已完成您的投資調倉最佳化算力診斷！');
+                showToast('🤖 AI 投資顧問已完成您的長短期目標與停損價位精算！');
 
             } catch (err) {
                 console.error(err);
@@ -1493,22 +1558,29 @@
             const board = document.getElementById('ai-planning-result-board');
             board.classList.remove('hidden');
             document.getElementById('ai-safe-limit').innerText = 'AI 思考中...';
-            document.getElementById('ai-advice-list').innerHTML = '<li class="text-slate-400 italic font-medium">正在透過金融防護網進行高精密財務規劃中...</li>';
+            document.getElementById('ai-advice-list').innerHTML = '<li class="text-slate-400 italic font-medium">CFP 財務專家正在採用 50/30/20 及複利精算法為您量身規劃預算...</li>';
 
-            const userPrompt = `請依據我提供的個人財務資訊，為我規劃本月最安全的花費上限額度、給予一個財務安全健康分數（0-100），以及提供3個量身定制的理財專家精實攻略。
-            
-            財務資料如下：
-            - 每月平均總收入：NT$ ${state.monthlyIncome} 元
-            - 目前活定存總資產：NT$ ${totalSavings} 元
-            - 信用卡累計欠款債務：NT$ ${totalCreditDebt} 元
-            - 所有儲蓄目標每月應提撥的總合金額：NT$ ${Math.round(totalMonthlySuggestedSavings)} 元
-            
-            請使用 json 結構回傳以下欄位：
-            1. "safeLimit": 必須是數字，代表本月份合理安全花費額度 (月收入 - 每月儲蓄目標提撥 - 部分欠款)
-            2. "healthScore": 數字 0-100 分。
-            3. "advices": 陣列字串，長度為3，代表對應這份資產與債務的關鍵財務改善攻略。`;
+            const userPrompt = `
+                請依據我提供的個人財務與目標數據，為我規劃本月最安全、最精準的花費上限額度、給予一個客觀的財務健康安全分數（0-100），以及提供 3 個量身定制、具備強大執行力的理財規劃策略。
+                
+                我的財務數據：
+                - 每月平均總收入：NT$ ${state.monthlyIncome} 元
+                - 目前存款總餘額：NT$ ${totalSavings} 元
+                - 信用卡未繳總債務：NT$ ${totalCreditDebt} 元
+                - 儲蓄目標每月固定應提撥額：NT$ ${Math.round(totalMonthlySuggestedSavings)} 元
+                
+                請勿給出陳腔濫調（如"多存錢、少花錢"），請依據：
+                1. 50/30/20 預算分配法則計算本月最高安全花費額度 (必須扣除儲蓄目標與債務準備)。
+                2. 精確計算「緊急預備金目標（應存滿 6 個月核心開銷 = NT$ X 元）」，並指出與目前存款的缺口。
+                3. 給予 3 個極具操作性、非直覺的理財或省稅/自動化儲蓄黑客技巧。
+                
+                請使用 json 結構回傳以下欄位：
+                1. "safeLimit": 必須是數字，代表本月份合理安全花費額度
+                2. "healthScore": 數字 0-100 分。
+                3. "advices": 陣列字串，長度為3，代表精確的 CFP 特許財務分析建議。
+            `;
 
-            const systemPrompt = "你是一個國際頂尖的 Fintech 個人理財與預算精算大師。請一律使用 JSON 格式回覆，不含任何額外的 Markdown 開頭與引號。";
+            const systemPrompt = "You are a highly-experienced Certified Financial Planner (CFP). Your planning suggestions are mathematically precise, highly actionable, and tailored to build real wealth. You must output strictly valid JSON conforming to the schema.";
             
             const jsonSchema = {
                 type: "OBJECT",
@@ -1524,7 +1596,6 @@
             };
 
             try {
-                // 使用強固 API 核心
                 const parsed = await callGeminiAPI(userPrompt, systemPrompt, false, jsonSchema);
 
                 document.getElementById('ai-safe-limit').innerText = 'NT$ ' + Math.round(parsed.safeLimit).toLocaleString();
@@ -1618,7 +1689,7 @@
                 btn.className = "category-btn py-1.5 px-1 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-center";
             });
 
-            event.target.className = "category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold font-bold";
+            event.target.className = "category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold";
 
             const payTypeSelect = document.getElementById('calc-payment-type');
             if (cat === 'income') {
