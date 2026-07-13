@@ -664,6 +664,18 @@
 
             setInterval(autoMarketTick, 15000);
 
+            // 🌟 智慧自動全螢幕：當使用者第一次觸摸或點擊螢幕時，自動幫他啟動全螢幕
+            const triggerAutoFullScreen = () => {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    toggleFullScreen();
+                }
+                // 觸發一次後就移除監聽器，避免重複執行
+                document.removeEventListener('click', triggerAutoFullScreen);
+                document.removeEventListener('touchstart', triggerAutoFullScreen);
+            };
+            document.addEventListener('click', triggerAutoFullScreen);
+            document.addEventListener('touchstart', triggerAutoFullScreen);
+
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
                     .then(() => console.log('Service Worker Registered'))
