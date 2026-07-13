@@ -38,8 +38,6 @@
     </script>
     <!-- FontAwesome 圖標庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js 圖表庫 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google GIS (Google 認證服務) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -73,11 +71,17 @@
                 </div>
             </div>
             
-            <!-- 同步按鈕 -->
-            <button onclick="openSyncModal()" class="flex items-center gap-1.5 bg-white text-theme-darkblue hover:bg-theme-blue transition-colors px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
-                <i class="fa-solid fa-cloud"></i>
-                <span>同步</span>
-            </button>
+            <!-- 功能控制按鈕 -->
+            <div class="flex items-center gap-1.5">
+                <!-- HTML5 一鍵網頁全螢幕切換按鈕 -->
+                <button onclick="toggleFullScreen()" class="w-8 h-8 bg-white text-theme-darkblue hover:bg-theme-blue transition-colors rounded-full flex items-center justify-center shadow-md" title="切換全螢幕模式">
+                    <i id="fs-icon" class="fa-solid fa-expand text-xs"></i>
+                </button>
+                <button onclick="openSyncModal()" class="flex items-center gap-1.5 bg-white text-theme-darkblue hover:bg-theme-blue transition-colors px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
+                    <i class="fa-solid fa-cloud"></i>
+                    <span>同步</span>
+                </button>
+            </div>
         </header>
 
         <!-- 主內容滾動區 -->
@@ -87,7 +91,6 @@
             <section id="tab-dashboard" class="space-y-5">
                 <!-- 總資產總覽卡片 -->
                 <div class="bg-gradient-to-br from-theme-darkblue to-sky-500 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden">
-                    <!-- 背景裝飾 -->
                     <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
                     <p class="text-xs font-medium text-white/80">總資產淨值 (Net Worth)</p>
                     <h2 class="text-3xl font-black mt-1" id="dash-total-net">NT$ 0</h2>
@@ -158,9 +161,9 @@
                 </div>
             </section>
 
-            <!-- 分頁 2: 資產 Assets (包含 銀行存款 & 證券股票 子分頁) -->
+            <!-- 分頁 2: 資產 Assets -->
             <section id="tab-assets" class="hidden space-y-5">
-                <!-- 頂部馬卡龍雙軌切換開關 -->
+                <!-- 頂部雙軌切換開關 -->
                 <div class="flex bg-slate-100 p-1 rounded-full border border-slate-200">
                     <button id="btn-sub-bank" onclick="selectAssetSubTab('bank')" class="flex-1 py-2 text-xs font-black rounded-full transition-all bg-white text-slate-800 shadow-sm">
                         🏦 銀行存款
@@ -172,7 +175,6 @@
 
                 <!-- 子分頁：銀行與信用卡 -->
                 <div id="sub-asset-bank" class="space-y-5">
-                    <!-- 存款帳戶管理區 -->
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
                             <h3 class="text-sm font-black text-slate-700">💰 存款帳戶清單</h3>
@@ -180,12 +182,9 @@
                                 + 新增帳戶
                             </button>
                         </div>
-                        <div class="space-y-2" id="bank-list-container">
-                            <!-- 動態渲染存款帳戶 -->
-                        </div>
+                        <div class="space-y-2" id="bank-list-container"></div>
                     </div>
 
-                    <!-- 信用卡管理區 -->
                     <div class="space-y-3 pt-2">
                         <div class="flex justify-between items-center">
                             <h3 class="text-sm font-black text-slate-700">💳 信用卡未繳卡費</h3>
@@ -193,15 +192,12 @@
                                 + 新增卡片
                             </button>
                         </div>
-                        <div class="space-y-3" id="credit-list-container">
-                            <!-- 動態渲染信用卡卡片 -->
-                        </div>
+                        <div class="space-y-3" id="credit-list-container"></div>
                     </div>
                 </div>
 
                 <!-- 子分頁：證券股票投資 -->
                 <div id="sub-asset-stocks" class="hidden space-y-4">
-                    <!-- 股票損益總覽卡片 -->
                     <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-4 rounded-2xl shadow-md flex justify-between items-center">
                         <div>
                             <span class="text-[10px] text-emerald-100 font-bold block uppercase tracking-wider">證券資產市值</span>
@@ -225,20 +221,15 @@
                         </div>
                     </div>
 
-                    <!-- 股票清單 -->
-                    <div class="space-y-2.5" id="stock-list-container">
-                        <!-- 動態渲染股票項目 -->
-                    </div>
-
+                    <div class="space-y-2.5" id="stock-list-container"></div>
                     <p class="text-[9px] text-slate-400 text-center italic mt-2">
-                        *提示：系統內置了虛擬股市即時行情模擬器，現價預設每過 15 秒會進行微幅隨機波動。
+                        *提示：系統內置虛擬股市即時行情模擬器，現價預設每過 15 秒會進行微幅隨機波動。
                     </p>
                 </div>
             </section>
 
             <!-- 分頁 3: 目標與 AI 規劃 Goals & AI -->
             <section id="tab-goals" class="hidden space-y-5">
-                <!-- 平均月收入設定 -->
                 <div class="bg-gradient-to-r from-theme-blue/30 to-theme-pink/30 border border-theme-blue/80 rounded-2xl p-4 space-y-3 shadow-sm">
                     <h3 class="text-xs font-black text-slate-700 flex items-center gap-1">
                         <span>💵 月收入基礎設定</span>
@@ -254,7 +245,6 @@
                     </div>
                 </div>
 
-                <!-- 儲蓄目標管理 -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <h3 class="text-sm font-black text-slate-700">🎯 理財儲蓄目標</h3>
@@ -262,9 +252,7 @@
                             + 新增目標
                         </button>
                     </div>
-                    <div class="space-y-3.5" id="goal-list-container">
-                        <!-- 動態渲染儲蓄目標 -->
-                    </div>
+                    <div class="space-y-3.5" id="goal-list-container"></div>
                 </div>
 
                 <!-- AI 理財規劃成果呈現板 -->
@@ -277,18 +265,14 @@
                         <span class="text-[9px] bg-pink-100 text-theme-darkpink font-extrabold px-1.5 py-0.5 rounded" id="ai-health-score">財務安全：- 分</span>
                     </div>
 
-                    <!-- 安全額度看板 -->
                     <div class="bg-gradient-to-br from-pink-50 to-sky-50 p-3.5 rounded-2xl border border-pink-100 text-center">
                         <span class="text-[10px] text-slate-400 font-bold block">本月建議最高安全花費額度</span>
                         <h5 class="text-2xl font-black text-slate-800 mt-1" id="ai-safe-limit">NT$ -</h5>
                     </div>
 
-                    <!-- AI 建議細項 -->
                     <div class="space-y-2">
                         <span class="text-[10px] text-slate-400 font-bold block">💡 專家理財攻略</span>
-                        <div class="text-xs text-slate-600 space-y-2 leading-relaxed" id="ai-advice-list">
-                            <!-- AI 回應清單 -->
-                        </div>
+                        <div class="text-xs text-slate-600 space-y-2 leading-relaxed" id="ai-advice-list"></div>
                     </div>
                 </div>
             </section>
@@ -322,48 +306,39 @@
                     </div>
                 </div>
 
-                <!-- 明細列表 -->
-                <div class="space-y-2" id="transaction-list-container">
-                    <!-- 交易明細動態渲染 -->
-                </div>
+                <div class="space-y-2" id="transaction-list-container"></div>
             </section>
         </main>
 
         <!-- App 底部導航欄 -->
         <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center h-16 px-2 shadow-lg shrink-0 z-40">
-            <!-- 儀表板 -->
             <button onclick="switchTab('tab-dashboard')" id="nav-tab-dashboard" class="flex-1 flex flex-col items-center justify-center gap-1 text-theme-darkblue font-bold">
                 <i class="fa-solid fa-house text-lg"></i>
                 <span class="text-[9px]">總覽</span>
             </button>
-            
-            <!-- 資產 -->
             <button onclick="switchTab('tab-assets')" id="nav-tab-assets" class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
                 <i class="fa-solid fa-wallet text-lg"></i>
                 <span class="text-[9px]">資產</span>
             </button>
 
-            <!-- 懸浮記帳按鈕 (FAB) - 啟動計算機 -->
+            <!-- 懸浮記帳按鈕 (FAB) -->
             <div class="flex-1 flex justify-center -mt-6">
                 <button onclick="openCalcModal()" class="w-14 h-14 bg-gradient-to-tr from-theme-darkblue to-cyan-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
                     <i class="fa-solid fa-plus text-xl"></i>
                 </button>
             </div>
 
-            <!-- 目標與 AI -->
             <button onclick="switchTab('tab-goals')" id="nav-tab-goals" class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
                 <i class="fa-solid fa-bullseye text-lg"></i>
                 <span class="text-[9px]">目標/AI</span>
             </button>
-
-            <!-- 明細 -->
             <button onclick="switchTab('tab-transactions')" id="nav-tab-transactions" class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
                 <i class="fa-solid fa-list-ul text-lg"></i>
                 <span class="text-[9px]">明細</span>
             </button>
         </nav>
 
-        <!-- 彈出視窗：計算機記帳 Numpad Panel (Modal) -->
+        <!-- 計算機記帳 Modal -->
         <div id="calc-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end justify-center transition-opacity duration-300">
             <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto">
                 <div class="flex justify-between items-center border-b pb-2">
@@ -371,7 +346,6 @@
                     <button onclick="closeCalcModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
 
-                <!-- 記帳大分類選擇按鈕 -->
                 <div class="space-y-1.5">
                     <span class="text-[9px] text-slate-400 font-bold block">選擇消費分類</span>
                     <div class="grid grid-cols-4 gap-1.5 text-xs font-bold" id="calc-category-group">
@@ -386,7 +360,6 @@
                     </div>
                 </div>
 
-                <!-- 扣款/付款來源選擇 -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[9px] text-slate-400 font-bold mb-1">付款方式 / 收儲帳戶</label>
@@ -397,24 +370,19 @@
                     </div>
                     <div>
                         <label class="block text-[9px] text-slate-400 font-bold mb-1">具體卡片 / 銀行選定</label>
-                        <select id="calc-payment-account" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-700 font-bold">
-                            <!-- 活存/信用卡動態載入 -->
-                        </select>
+                        <select id="calc-payment-account" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-700 font-bold"></select>
                     </div>
                 </div>
 
-                <!-- 備註輸入 -->
                 <div>
                     <input type="text" id="calc-note" placeholder="新增簡單備註（如：午餐、加油）..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-theme-darkblue">
                 </div>
 
-                <!-- 計算機顯示器 -->
                 <div class="bg-slate-100 rounded-2xl p-3 flex flex-col items-end justify-center min-h-[50px]">
                     <span id="calc-history" class="text-[10px] text-slate-400 font-mono tracking-wider h-4"></span>
                     <span id="calc-display" class="text-2xl font-black text-slate-800 font-mono mt-1">0</span>
                 </div>
 
-                <!-- 計算機鍵盤 (Numpad) -->
                 <div class="grid grid-cols-4 gap-2 font-mono">
                     <button onclick="pressCalcKey('7')" class="py-3 bg-slate-50 active:bg-slate-200 text-slate-800 font-black rounded-xl text-center shadow-sm">7</button>
                     <button onclick="pressCalcKey('8')" class="py-3 bg-slate-50 active:bg-slate-200 text-slate-800 font-black rounded-xl text-center shadow-sm">8</button>
@@ -443,21 +411,19 @@
             </div>
         </div>
 
-        <!-- 彈出視窗：Google 同步雲端設定 (Modal) -->
+        <!-- 同步 Modal -->
         <div id="sync-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-[2rem] p-5 shadow-2xl space-y-4">
                 <div class="flex justify-between items-center border-b pb-2">
-                    <span class="text-sm font-black text-slate-800">☁️ Google 帳號雲端備份同步</span>
+                    <span class="text-sm font-black text-slate-800">☁️ Google 帳號備份同步</span>
                     <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
 
                 <div class="space-y-3.5 text-xs text-slate-600">
-                    <!-- Client ID 輸入與說明 -->
                     <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
                         <label class="block text-[10px] text-slate-400 font-bold">1. 輸入您的 Google API Client ID</label>
-                        <input type="text" id="g-client-id" placeholder="貼上在 Google Console 取得的 Client ID..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] text-slate-600 focus:outline-none focus:border-theme-darkblue">
+                        <input type="text" id="g-client-id" placeholder="貼上 Google Console Client ID..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] text-slate-600 focus:outline-none focus:border-theme-darkblue">
                         
-                        <!-- 解決 origin_mismatch 提示區 -->
                         <div class="p-2 bg-pink-50 rounded-lg border border-pink-100 text-[8.5px] text-slate-500 space-y-1">
                             <span class="font-extrabold text-theme-darkpink">💡 解決 400: origin_mismatch 錯誤：</span>
                             <p>請複製下方網址，貼進 Google Console 憑證的<b>「已授權的 JavaScript 來源」</b>中：</p>
@@ -465,13 +431,8 @@
                                 <span id="g-origin-val" class="font-mono bg-white border px-1.5 py-0.5 rounded text-slate-600 select-all break-all">取得中...</span>
                             </div>
                         </div>
-
-                        <p class="text-[8.5px] text-slate-400">
-                            *首次設定需前往 Google Cloud 免費建立憑證。
-                        </p>
                     </div>
 
-                    <!-- 操作按鈕 -->
                     <div class="space-y-2">
                         <button onclick="authenticateGoogleUser()" class="w-full bg-slate-800 text-white font-bold py-2 px-3 rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
                             <i class="fa-brands fa-google"></i>
@@ -494,7 +455,6 @@
                         上次同步時間：<span id="sync-last-time" class="font-mono font-bold">無紀錄</span>
                     </p>
 
-                    <!-- 危險區域：清除本機資料 -->
                     <div class="border-t border-slate-100 pt-3 mt-3">
                         <span class="block text-[9px] text-rose-400 font-bold mb-1 uppercase tracking-wider">危險區域 (Danger Zone)</span>
                         <button id="btn-reset-data" onclick="triggerFactoryReset()" class="w-full py-1.5 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 border border-rose-200 cursor-pointer">
@@ -506,7 +466,7 @@
             </div>
         </div>
 
-        <!-- 彈出視窗：新增/編輯 存款帳戶 -->
+        <!-- 存款帳戶 Modal -->
         <div id="bank-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">🏦 存款帳戶管理</h4>
@@ -534,7 +494,7 @@
             </div>
         </div>
 
-        <!-- 彈出視窗：新增/編輯 信用卡卡片 -->
+        <!-- 信用卡 Modal -->
         <div id="credit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3.5">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">💳 信用卡卡片設定</h4>
@@ -563,12 +523,11 @@
                             <input type="number" id="credit-min-due" placeholder="最低繳納額" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 focus:outline-none">
                         </div>
                     </div>
-                    <!-- 繳卡費對應之虛擬付款資訊 -->
                     <div class="p-2 bg-pink-50/50 rounded-xl border border-pink-100 space-y-2">
                         <span class="block text-[9px] text-theme-darkpink font-extrabold">🏦 設定一鍵轉帳繳款代碼</span>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[8px] text-slate-400 font-bold mb-0.5">銀行代碼 (如812)</label>
+                                <label class="block text-[8px] text-slate-400 font-bold mb-0.5">銀行代碼 (如 822)</label>
                                 <input type="text" id="credit-bank-code" placeholder="如 822" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none">
                             </div>
                             <div>
@@ -585,7 +544,7 @@
             </div>
         </div>
 
-        <!-- 彈出視窗：新增/編輯 股票持股 -->
+        <!-- 證券股票 Modal -->
         <div id="stock-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">📈 證券持股設定</h4>
@@ -622,7 +581,7 @@
             </div>
         </div>
 
-        <!-- 彈出視窗：新增/編輯 儲蓄目標 -->
+        <!-- 儲蓄目標 Modal -->
         <div id="goal-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
                 <h4 class="text-sm font-black text-slate-800 border-b pb-2">🎯 理財儲蓄目標管理</h4>
@@ -653,14 +612,13 @@
             </div>
         </div>
 
-        <!-- 訊息通知小吐司 Toast Notification Container -->
+        <!-- 訊息通知小吐司 Toast -->
         <div id="toast" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[11px] font-bold px-4 py-2.5 rounded-full shadow-lg z-50 text-center tracking-wide whitespace-nowrap"></div>
 
     </div>
 
     <!-- JavaScript 核心功能邏輯 -->
     <script>
-        // 1. 初始化資料庫 (LocalStorage)
         const db = {
             get: (key, defaultValue) => {
                 const data = localStorage.getItem('wf_app_' + key);
@@ -671,7 +629,6 @@
             }
         };
 
-        // 全域狀態管理 (完全淨空空數據，等待用戶使用)
         let state = {
             banks: [],
             credits: [],
@@ -692,7 +649,6 @@
             editingItem: null
         };
 
-        // 啟動載入
         window.onload = function() {
             state.banks = db.get('banks', []);
             state.credits = db.get('credits', []);
@@ -701,25 +657,53 @@
             state.transactions = db.get('transactions', []);
             state.monthlyIncome = db.get('monthlyIncome', 50000);
 
-            // 寫入畫面
             document.getElementById('user-monthly-income').value = state.monthlyIncome;
             
-            // 初始化動態顯示
             updateAllViews();
             switchTab('tab-dashboard');
 
-            // 自動定時模擬股市
             setInterval(autoMarketTick, 15000);
 
-            // 註冊 PWA Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
-                    .then(() => console.log('Service Worker Registered Successfully'))
+                    .then(() => console.log('Service Worker Registered'))
                     .catch(err => console.log('Service Worker Registration Failed', err));
             }
         };
 
-        // 彈出通知小吐司
+        function toggleFullScreen() {
+            const doc = document.documentElement;
+            const icon = document.getElementById('fs-icon');
+            if (!document.fullscreenElement) {
+                if (doc.requestFullscreen) {
+                    doc.requestFullscreen();
+                } else if (doc.webkitRequestFullscreen) {
+                    doc.webkitRequestFullscreen();
+                } else if (doc.msRequestFullscreen) {
+                    doc.msRequestFullscreen();
+                }
+                icon.className = "fa-solid fa-compress text-xs";
+                showToast("已進入全螢幕沉浸模式！");
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                icon.className = "fa-solid fa-expand text-xs";
+                showToast("已退出全螢幕。");
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fs-icon');
+            if (document.fullscreenElement) {
+                icon.className = "fa-solid fa-compress text-xs";
+            } else {
+                icon.className = "fa-solid fa-expand text-xs";
+            }
+        });
+
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.innerText = message;
@@ -729,26 +713,28 @@
             }, 2500);
         }
 
-        // 切換主頁籤 Tab
         function switchTab(tabId) {
             const tabs = ['tab-dashboard', 'tab-assets', 'tab-goals', 'tab-transactions'];
             tabs.forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 const navBtn = document.getElementById('nav-' + id);
-                navBtn.classList.remove('text-theme-darkblue', 'font-bold');
-                navBtn.classList.add('text-slate-400', 'font-medium');
+                if (navBtn) {
+                    navBtn.classList.remove('text-theme-darkblue', 'font-bold');
+                    navBtn.classList.add('text-slate-400', 'font-medium');
+                }
             });
 
             document.getElementById(tabId).classList.remove('hidden');
             const activeNavBtn = document.getElementById('nav-' + tabId);
-            activeNavBtn.classList.add('text-theme-darkblue', 'font-bold');
-            activeNavBtn.classList.remove('text-slate-400', 'font-medium');
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('text-theme-darkblue', 'font-bold');
+                activeNavBtn.classList.remove('text-slate-400', 'font-medium');
+            }
 
             state.activeTab = tabId;
             updateAllViews();
         }
 
-        // 切換資產下的子頁籤 (銀行/股票)
         function selectAssetSubTab(subType) {
             state.activeAssetSubTab = subType;
             const btnBank = document.getElementById('btn-sub-bank');
@@ -769,21 +755,16 @@
             }
         }
 
-        // 計算並刷新所有數據與卡片呈現
         function updateAllViews() {
-            // 存款總和
             const totalSavings = state.banks.reduce((acc, b) => acc + Number(b.balance), 0);
             document.getElementById('mini-bank-total').innerText = 'NT$ ' + totalSavings.toLocaleString();
 
-            // 信用卡未繳總和
             const totalCreditDebt = state.credits.reduce((acc, c) => acc + Number(c.debt), 0);
             document.getElementById('mini-credit-debt').innerText = 'NT$ ' + totalCreditDebt.toLocaleString();
 
-            // 股票總和
             const totalStockValue = state.stocks.reduce((acc, s) => acc + (Number(s.shares) * Number(s.currentPrice)), 0);
             document.getElementById('stock-total-value').innerText = 'NT$ ' + totalStockValue.toLocaleString();
 
-            // 股票總損益
             const totalStockCost = state.stocks.reduce((acc, s) => acc + (Number(s.shares) * Number(s.buyPrice)), 0);
             const totalStockProfit = totalStockValue - totalStockCost;
             const stockProfitRatio = totalStockCost > 0 ? (totalStockProfit / totalStockCost * 100).toFixed(2) : '0.00';
@@ -796,11 +777,9 @@
                 profitTxt.className = "text-base font-extrabold text-rose-200";
             }
 
-            // 總資產淨值
             const netWorth = totalSavings + totalStockValue - totalCreditDebt;
             document.getElementById('dash-total-net').innerText = 'NT$ ' + netWorth.toLocaleString();
 
-            // 本月收支明細
             const today = new Date();
             const thisYearMonth = today.toISOString().substring(0, 7);
             
@@ -816,7 +795,6 @@
             document.getElementById('dash-month-income').innerText = 'NT$ ' + monthIncome.toLocaleString();
             document.getElementById('dash-month-expense').innerText = 'NT$ ' + monthExpense.toLocaleString();
 
-            // 預算上限設定：預設每月 30,000 元
             const budgetMax = 30000;
             const spentRatio = Math.min((monthExpense / budgetMax) * 100, 100);
             document.getElementById('budget-ratio-text').innerText = spentRatio.toFixed(0) + '%';
@@ -830,7 +808,6 @@
                 document.getElementById('budget-progress-bar').className = "bg-theme-darkblue h-full transition-all duration-500";
             }
 
-            // 渲染列表
             renderBankList();
             renderCreditList();
             renderStockList();
@@ -838,7 +815,6 @@
             renderTransactions();
         }
 
-        // 渲染 存款帳戶
         function renderBankList() {
             const container = document.getElementById('bank-list-container');
             container.innerHTML = '';
@@ -874,7 +850,6 @@
             });
         }
 
-        // 渲染 信用卡卡片 (帶有一鍵複製與一鍵繳費)
         function renderCreditList() {
             const container = document.getElementById('credit-list-container');
             container.innerHTML = '';
@@ -923,6 +898,7 @@
 
                         <div class="flex gap-2">
                             <button onclick="editCreditCardObject('${c.id}')" class="text-[9px] text-slate-300 font-extrabold hover:underline">設定</button>
+                            <button onclick="deleteCreditCardObject('${c.id}')" class="text-[9px] text-rose-300 font-extrabold hover:underline">刪除</button>
                             <button onclick="quickPayCardDebt('${c.id}')" class="bg-gradient-to-r from-theme-pink to-theme-darkpink text-white font-black text-[9px] px-2.5 py-1 rounded-full hover:opacity-90 active:scale-95 transition-all">
                                 💳 快速還卡費
                             </button>
@@ -933,7 +909,6 @@
             });
         }
 
-        // 一鍵複製轉帳碼 (採用 clipboard 複製與 fallback 方案)
         function copyTransferInfo(cardId) {
             const card = state.credits.find(c => c.id === cardId);
             if (!card) return;
@@ -953,7 +928,6 @@
             document.body.removeChild(tempTextarea);
         }
 
-        // 一鍵繳信用卡費 (直接扣存款活期帳戶，歸零欠款)
         function quickPayCardDebt(cardId) {
             const card = state.credits.find(c => c.id === cardId);
             if (!card) return;
@@ -999,11 +973,10 @@
             db.set('credits', state.credits);
             db.set('transactions', state.transactions);
             
-            showToast(`💳 已從 [${payBank.name}] 自動扣繳 NT$ ${payAmount.toLocaleString()} 還卡費成功！`);
+            showToast(`💳 已從 [${payBank.name}] 自動轉帳支付 NT$ ${payAmount.toLocaleString()} 還卡費成功！`);
             updateAllViews();
         }
 
-        // 渲染 證券股票持股
         function renderStockList() {
             const container = document.getElementById('stock-list-container');
             container.innerHTML = '';
@@ -1046,7 +1019,6 @@
             });
         }
 
-        // 股票現價隨機模擬波動 (模擬股市交易行情，跳動現價)
         function autoMarketTick() {
             if (state.stocks.length === 0) return;
             state.stocks.forEach(s => {
@@ -1060,14 +1032,12 @@
             }
         }
 
-        // 手動模擬股票更新
         function triggerStockSimulation() {
             autoMarketTick();
             showToast('📈 市場現價模擬行情已立即刷新！');
             updateAllViews();
         }
 
-        // 渲染 理財儲蓄目標
         function renderGoalList() {
             const container = document.getElementById('goal-list-container');
             container.innerHTML = '';
@@ -1114,18 +1084,6 @@
             });
         }
 
-        // 日期計算剩餘月數輔助函數
-        function getRemainingMonths(deadlineStr) {
-            if (!deadlineStr) return 12;
-            const today = new Date();
-            const dl = new Date(deadlineStr);
-            const yearsDiff = dl.getFullYear() - today.getFullYear();
-            const monthsDiff = dl.getMonth() - today.getMonth();
-            const total = (yearsDiff * 12) + monthsDiff;
-            return total <= 0 ? 1 : total;
-        }
-
-        // 🤖 AI 智慧理財規劃 (Gemini 3.1 Flash LLM 串接)
         async function triggerAiPlanning() {
             const incVal = document.getElementById('user-monthly-income').value;
             state.monthlyIncome = Number(incVal) || 50000;
@@ -1150,15 +1108,13 @@
 
             const userPrompt = `
                 請依據我提供的個人財務資訊，為我規劃本月最安全的花費上限額度、給予一個財務安全健康分數（0-100），以及提供3個量身定制的理財專家精實攻略。
-                
                 財務資料如下：
                 - 每月平均總收入：NT$ ${state.monthlyIncome} 元
                 - 目前活定存總資產：NT$ ${totalSavings} 元
                 - 信用卡累計欠款債務：NT$ ${totalCreditDebt} 元
                 - 所有中長期儲蓄目標預估「每月應提撥」的總金額：NT$ ${Math.round(totalMonthlySuggestedSavings)} 元
-                
                 請使用 json 結構回傳以下欄位：
-                1. "safeLimit": 必須是數字，代表本月份合理安全花費額度 (公式參考：月收入 - 每月儲蓄目標提撥 - 部分欠款)
+                1. "safeLimit": 必須是數字，代表本月份合理安全花費額度 (公式：月收入 - 每月儲蓄目標提撥 - 部分欠款)
                 2. "healthScore": 數字 0-100 分。
                 3. "advices": 陣列字串，長度為3，分別代表對應這份資產與債務的關鍵財務改善攻略。
             `;
@@ -1217,7 +1173,6 @@
                 showToast('🤖 AI 智慧理財專家已完成您的專屬預算規劃！');
 
             } catch (err) {
-                // Fallback 本地精密計算與回應
                 document.getElementById('ai-safe-limit').innerText = 'NT$ ' + Math.round(localSafeLimit).toLocaleString();
                 document.getElementById('ai-health-score').innerText = `財務安全：${localHealthScore} 分 (本地精算)`;
                 
@@ -1241,7 +1196,6 @@
             }
         }
 
-        // 渲染 交易明細清單
         function renderTransactions() {
             const container = document.getElementById('transaction-list-container');
             container.innerHTML = '';
@@ -1289,9 +1243,6 @@
             });
         }
 
-        // =====================================
-        // 計算機記帳邏輯
-        // =====================================
         function openCalcModal() {
             document.getElementById('calc-modal').classList.remove('hidden');
             state.calc.display = '0';
@@ -1315,7 +1266,10 @@
                 btn.className = "category-btn py-1.5 px-1 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-center";
             });
 
-            event.target.className = "category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold shadow-sm";
+            // Highlight target
+            if (event && event.target) {
+                event.target.className = "category-btn py-1.5 px-1 bg-theme-blue text-theme-darkblue border border-theme-darkblue/20 rounded-xl text-center font-bold shadow-sm";
+            }
 
             const payTypeSelect = document.getElementById('calc-payment-type');
             if (cat === 'income') {
@@ -1473,11 +1427,6 @@
             updateAllViews();
         }
 
-        // =====================================
-        // CRUD 資料表單處理
-        // =====================================
-        
-        // --- 銀行帳戶 ---
         function openBankModal(editId = null) {
             state.editingItem = editId;
             if (editId) {
@@ -1535,7 +1484,7 @@
             updateAllViews();
         }
 
-        // --- 信用卡 ---
+        // --- Credit Card handlers ---
         function openCreditModal(editId = null) {
             state.editingItem = editId;
             if (editId) {
@@ -1602,7 +1551,14 @@
             openCreditModal(id);
         }
 
-        // --- 證券股票 ---
+        function deleteCreditCardObject(id) {
+            state.credits = state.credits.filter(c => c.id !== id);
+            db.set('credits', state.credits);
+            showToast('💳 信用卡已安全移除');
+            updateAllViews();
+        }
+
+        // --- Stocks handlers ---
         function openStockModal(editId = null) {
             state.editingItem = editId;
             if (editId) {
@@ -1668,7 +1624,7 @@
             updateAllViews();
         }
 
-        // --- 儲蓄目標 ---
+        // --- Goals handlers ---
         function openGoalModal(editId = null) {
             state.editingItem = editId;
             if (editId) {
@@ -1730,7 +1686,6 @@
             updateAllViews();
         }
 
-        // --- 刪除交易記錄 ---
         function deleteTransactionObject(id) {
             const t = state.transactions.find(x => x.id === id);
             if (t) {
@@ -1760,11 +1715,6 @@
             updateAllViews();
         }
 
-        // =====================================
-        // Google Drive 備份與同步雲端功能 (全新 HTML5 二進位高相容修復版)
-        // =====================================
-        let tokenClient;
-
         function openSyncModal() {
             document.getElementById('sync-modal').classList.remove('hidden');
             const savedTime = localStorage.getItem('wf_last_sync_time');
@@ -1785,11 +1735,10 @@
             document.getElementById('sync-modal').classList.add('hidden');
         }
 
-        // 開始 Google Auth 流程
         function authenticateGoogleUser() {
             const clientId = document.getElementById('g-client-id').value.trim();
             if (!clientId) {
-                showToast('❌ 請先輸入您從 Google Cloud 建立的 Client ID！');
+                showToast('❌ 請先輸入您從 Google Console 取得的 Client ID！');
                 return;
             }
 
@@ -1819,7 +1768,6 @@
             }
         }
 
-        // 搜尋雲端上的備份檔案
         async function findBackupFileOnDrive() {
             const response = await fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%27wealthflow_backup.json%27+and+trashed%3Dfalse', {
                 headers: { 'Authorization': 'Bearer ' + state.googleToken }
@@ -1828,7 +1776,6 @@
             return result.files && result.files.length > 0 ? result.files[0] : null;
         }
 
-        // 🌟 上傳備份到 Google Drive (二進位 FormData，100% 解決 400 錯誤與亂碼問題！)
         async function uploadToCloud() {
             if (!state.googleToken) return;
             showToast('☁️ 正在上傳資料至 Google 雲端硬碟...');
@@ -1857,28 +1804,17 @@
                     method = 'PATCH';
                 }
 
-                const boundary = 'wealthflow_sync_boundary_999';
-                const delimiter = "\r\n--" + boundary + "\r\n";
-                const close_delim = "\r\n--" + boundary + "--";
+                const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+                const fileBlob = new Blob([JSON.stringify(payloadData, null, 2)], { type: 'application/json' });
 
-                const fileContent = JSON.stringify(payloadData, null, 2);
-                
-                const multipartRequestBody = 
-                    "--" + boundary + "\r\n" +
-                    "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
-                    JSON.stringify(metadata) +
-                    delimiter +
-                    "Content-Type: application/json\r\n\r\n" +
-                    fileContent +
-                    close_delim;
+                const formData = new FormData();
+                formData.append('metadata', metadataBlob);
+                formData.append('file', fileBlob);
 
                 const uploadResponse = await fetch(url, {
                     method: method,
-                    headers: { 
-                        'Authorization': 'Bearer ' + state.googleToken,
-                        'Content-Type': 'multipart/related; boundary=' + boundary
-                    },
-                    body: multipartRequestBody
+                    headers: { 'Authorization': 'Bearer ' + state.googleToken },
+                    body: formData
                 });
 
                 if (uploadResponse.ok) {
@@ -1887,8 +1823,8 @@
                     document.getElementById('sync-last-time').innerText = nowStr;
                     showToast('🎉 資料成功上傳並安全儲存至您的 Google 雲端硬碟！');
                 } else {
-                    const errorDetails = await uploadResponse.text();
-                    console.error('Google Upload Error Details:', errorDetails);
+                    const errTxt = await uploadResponse.text();
+                    console.error('Upload Failed', errTxt);
                     showToast('❌ 備份失敗，請確認授權或 Client ID 設定！');
                 }
             } catch (e) {
@@ -1897,7 +1833,6 @@
             }
         }
 
-        // 下載並還原雲端硬碟的備份資料
         async function downloadFromCloud() {
             if (!state.googleToken) return;
             showToast('☁️ 正在從 Google 雲端取得最新備份檔案...');
@@ -1941,9 +1876,6 @@
             }
         }
 
-        // =====================================
-        // 資料匯出 CSV
-        // =====================================
         function exportDataToCSV() {
             if (state.transactions.length === 0) {
                 showToast('目前無任何帳目可以匯出！');
@@ -1976,9 +1908,6 @@
             showToast('📊 一鍵匯出 CSV 成功 (相容 Excel)！');
         }
 
-        // =====================================
-        // 恢復原廠設定與清除資料邏輯 (防止 Alert/Confirm)
-        // =====================================
         let resetConfirmTimeout = null;
         let isResetConfirming = false;
 
